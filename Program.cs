@@ -1,0 +1,67 @@
+using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using DbUp;
+using EmployeeManagement.Data;
+using EmployeeManagement.Repositories;
+using EmployeeManagement.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/Forbidden";
+        options.ExpireTimeSpan = TimeSpan.FromHours(1);
+        options.SlidingExpiration = true;
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+var app = builder.Build();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+
+EnsureDatabase.For.PostgresqlDatabase(connectionString);
+
+var upgrader = DeployChanges.To
+    .PostgresqlDatabase(connectionString)
+    .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+    .WithVariablesDisabled()
+    .LogToConsole()
+    .Build();
+
+var result = upgrader.PerformUpgrade();
+if (!result.Successful)
+{
+    app.Logger.LogCritical("Database migration failed: {Error}", result.Error);
+    throw result.Error;
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Account}/{action=Login}/{id?}")
+    .WithStaticAssets();
+
+app.Run();

@@ -1,0 +1,48 @@
+@* Gọi: @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData) {
+       { "Page", Model.Page }, { "TotalPages", Model.TotalPages },
+       { "TotalCount", Model.TotalCount }, { "PageSize", Model.PageSize } })
+   Hoặc dùng trực tiếp các biến page/totalPages trong view *@
+@{
+    int _p  = (int)(ViewData["Page"]  ?? 1);
+    int _tp = (int)(ViewData["TotalPages"] ?? 1);
+    int _tc = (int)(ViewData["TotalCount"] ?? 0);
+    int _ps = (int)(ViewData["PageSize"] ?? 10);
+    int _from = (_p - 1) * _ps + 1;
+    int _to   = Math.Min(_p * _ps, _tc);
+}
+<div class="d-flex justify-content-between align-items-center px-3 py-2 border-top bg-white">
+    <span class="text-muted" style="font-size:13px">
+        @if (_tc > 0)
+        { <text>Hiển thị @_from–@_to trên @_tc bản ghi</text> }
+    </span>
+    @if (_tp > 1)
+    {
+        <nav>
+            <ul class="pagination pagination-sm mb-0 gap-1">
+                <li class="page-item @(_p == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-route-page="@(_p - 1)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    </a>
+                </li>
+                @for (int i = 1; i <= _tp; i++)
+                {
+                    @if (i == 1 || i == _tp || (i >= _p - 1 && i <= _p + 1))
+                    {
+                        <li class="page-item @(i == _p ? "active" : "")">
+                            <a class="page-link" asp-route-page="@i">@i</a>
+                        </li>
+                    }
+                    else if (i == _p - 2 || i == _p + 2)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                }
+                <li class="page-item @(_p == _tp ? "disabled" : "")">
+                    <a class="page-link" asp-route-page="@(_p + 1)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

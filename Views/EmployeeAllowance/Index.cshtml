@@ -1,0 +1,184 @@
+@model EmployeeAllowanceIndexViewModel
+@{
+    ViewData["Title"] = "Phụ cấp nhân viên";
+    bool isHrManager = User.IsInRole("HR_MANAGER");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold">@(isHrManager ? "Phụ cấp nhân viên" : "Phụ cấp của tôi")</h4>
+    @if (isHrManager)
+    {
+        <button id="allowCreateBtn" type="button" class="btn btn-primary">+ Gán phụ cấp</button>
+    }
+</div>
+
+@if (isHrManager)
+{
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <select name="empId" class="form-select">
+                @foreach (var opt in Model.EmployeeOptions)
+                {
+                    <option value="@opt.Value" selected="@(opt.Value == Model.FilterEmpId?.ToString())">@opt.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-secondary">Lọc</button>
+            <a asp-action="Index" class="btn btn-icon btn-outline-secondary" title="Xóa bộ lọc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </a>
+        </div>
+    </form>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    @if (isHrManager) { <th>Nhân viên</th> }
+                    <th>Hợp đồng</th>
+                    <th>Loại phụ cấp</th>
+                    <th>Số tiền</th>
+                    <th>Ngày áp dụng</th>
+                    <th>Trạng thái</th>
+                    @if (isHrManager) { <th style="width:72px"></th> }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.EmployeeAllowances)
+                {
+                    <tr>
+                        @if (isHrManager) { <td class="fw-semibold">@a.Employee?.FullName</td> }
+                        <td><code>@a.Contract?.ContractNumber</code></td>
+                        <td>@a.AllowanceConfig?.Name</td>
+                        <td class="fw-semibold">@a.Amount.ToString("N0") ₫</td>
+                        <td>@(a.EffectiveDate.HasValue ? a.EffectiveDate.Value.ToString("dd/MM/yyyy") : "--")</td>
+                        <td>
+                            <span class="badge @(a.Status == "ACTIVE" ? "badge-active" : "badge-inactive")">
+                                @(a.Status == "ACTIVE" ? "Đang áp dụng" : "Đã dừng")
+                            </span>
+                        </td>
+                        @if (isHrManager)
+                        {
+                            <td class="text-end">
+                                <button type="button" class="btn btn-icon btn-outline-primary allowEditBtn" title="Sửa"
+                                        data-id="@a.Id" data-empid="@a.EmpId" data-contractid="@a.ContractId"
+                                        data-allowanceid="@a.AllowanceId" data-amount="@a.Amount"
+                                        data-date="@(a.EffectiveDate?.ToString("yyyy-MM-dd") ?? "")">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                @if (a.Status == "ACTIVE")
+                                {
+                                    <form asp-action="Deactivate" asp-route-id="@a.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Dừng phụ cấp này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-icon btn-outline-danger" title="Dừng">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+                @if (!Model.EmployeeAllowances.Any())
+                {
+                    <tr><td colspan="7" class="text-center text-muted py-5">Dữ liệu trống</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (isHrManager)
+{
+<div class="modal fade" id="allowModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px">
+            <div class="modal-header"><h5 class="modal-title" id="allowModalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="allowForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="allowId" name="Id" />
+                    <input type="hidden" id="allowEmpId" name="EmpId" />
+                    <input type="hidden" id="allowContractId" name="ContractId" />
+                    <div id="allowCreateFields">
+                        <div class="mb-3">
+                            <label class="form-label">Nhân viên <span class="text-danger">*</span></label>
+                            <select id="allowEmpSelect" class="form-select">
+                                @foreach (var opt in Model.EmployeeOptions) { <option value="@opt.Value">@opt.Text</option> }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Hợp đồng <span class="text-danger">*</span></label>
+                            <select id="allowContractSelect" class="form-select">
+                                @foreach (var opt in Model.ContractOptions) { <option value="@opt.Value">@opt.Text</option> }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Loại phụ cấp <span class="text-danger">*</span></label>
+                        <select id="allowAllowanceId" name="AllowanceId" class="form-select">
+                            @foreach (var opt in Model.AllowanceOptions) { <option value="@opt.Value">@opt.Text</option> }
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6"><label class="form-label">Số tiền (VNĐ) <span class="text-danger">*</span></label><input id="allowAmount" name="Amount" type="number" class="form-control" step="10000" min="1" required /></div>
+                        <div class="col-md-6"><label class="form-label">Ngày hiệu lực</label><input id="allowDate" name="EffectiveDate" type="date" class="form-control" /></div>
+                    </div>
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <button type="submit" id="allowSubmitBtn" class="btn btn-primary px-4">Lưu</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    var modal = new bootstrap.Modal(document.getElementById('allowModal'));
+    document.getElementById('allowEmpSelect').addEventListener('change', function () {
+        document.getElementById('allowEmpId').value = this.value;
+    });
+    document.getElementById('allowContractSelect').addEventListener('change', function () {
+        document.getElementById('allowContractId').value = this.value;
+    });
+    document.getElementById('allowCreateBtn').addEventListener('click', function () {
+        document.getElementById('allowModalTitle').textContent = 'Gán phụ cấp nhân viên';
+        document.getElementById('allowForm').action = '@Url.Action("Create","EmployeeAllowance")';
+        document.getElementById('allowId').value = '';
+        document.getElementById('allowEmpId').value = '';
+        document.getElementById('allowContractId').value = '';
+        document.getElementById('allowCreateFields').style.display = '';
+        document.getElementById('allowEmpSelect').value = '';
+        document.getElementById('allowContractSelect').value = '';
+        document.getElementById('allowAllowanceId').value = '';
+        document.getElementById('allowAmount').value = '';
+        document.getElementById('allowDate').value = '';
+        document.getElementById('allowSubmitBtn').textContent = 'Lưu';
+        modal.show();
+    });
+    document.querySelectorAll('.allowEditBtn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('allowModalTitle').textContent = 'Chỉnh sửa phụ cấp';
+            document.getElementById('allowForm').action = '@Url.Action("Edit","EmployeeAllowance")/' + this.dataset.id;
+            document.getElementById('allowId').value = this.dataset.id;
+            document.getElementById('allowEmpId').value = this.dataset.empid;
+            document.getElementById('allowContractId').value = this.dataset.contractid;
+            document.getElementById('allowCreateFields').style.display = 'none';
+            document.getElementById('allowAllowanceId').value = this.dataset.allowanceid;
+            document.getElementById('allowAmount').value = this.dataset.amount;
+            document.getElementById('allowDate').value = this.dataset.date;
+            document.getElementById('allowSubmitBtn').textContent = 'Cập nhật';
+            modal.show();
+        });
+    });
+}());
+</script>
+}
+}

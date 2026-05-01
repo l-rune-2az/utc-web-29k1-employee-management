@@ -1,0 +1,103 @@
+@model EmployeeAllowanceFormViewModel
+@{
+    ViewData["Title"] = "Gán phụ cấp cho nhân viên";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Gán phụ cấp cho nhân viên</h4>
+        <p class="text-muted mb-0" style="font-size:14px">Liên kết phụ cấp với hợp đồng lao động cụ thể</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Quay lại
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger d-flex align-items-center gap-2 mb-4" role="alert">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span asp-validation-summary="ModelOnly"></span>
+                    </div>
+                }
+
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-4">
+                        <label asp-for="EmpId" class="form-label fw-semibold" style="font-size:14px;color:#334155"></label>
+                        <select asp-for="EmpId" asp-items="Model.EmployeeOptions"
+                                class="form-select" style="height:40px;font-size:14px;border:2px solid #cbd5e1;border-radius:8px;"></select>
+                        <span asp-validation-for="EmpId" class="text-danger" style="font-size:12px"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ContractId" class="form-label fw-semibold" style="font-size:14px;color:#334155"></label>
+                        <select asp-for="ContractId" asp-items="Model.ContractOptions"
+                                class="form-select" style="height:40px;font-size:14px;border:2px solid #cbd5e1;border-radius:8px;"></select>
+                        <span asp-validation-for="ContractId" class="text-danger" style="font-size:12px"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="AllowanceId" class="form-label fw-semibold" style="font-size:14px;color:#334155"></label>
+                        <select asp-for="AllowanceId" asp-items="Model.AllowanceOptions"
+                                class="form-select" style="height:40px;font-size:14px;border:2px solid #cbd5e1;border-radius:8px;"></select>
+                        <span asp-validation-for="AllowanceId" class="text-danger" style="font-size:12px"></span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="Amount" class="form-label fw-semibold" style="font-size:14px;color:#334155"></label>
+                            <input asp-for="Amount" type="number" step="10000" min="1"
+                                   class="form-control" style="height:40px;font-size:14px;border:2px solid #cbd5e1;border-radius:8px;" />
+                            <span asp-validation-for="Amount" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EffectiveDate" class="form-label fw-semibold" style="font-size:14px;color:#334155"></label>
+                            <input asp-for="EffectiveDate" type="date"
+                                   class="form-control" style="height:40px;font-size:14px;border:2px solid #cbd5e1;border-radius:8px;" />
+                            <span asp-validation-for="EffectiveDate" class="text-danger" style="font-size:12px"></span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 p-0 pt-3 d-flex gap-3">
+                        <button type="submit" class="btn btn-primary px-5">Lưu</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-semibold" style="color:#334155">Hướng dẫn</h6>
+            </div>
+            <div class="card-body" style="font-size:14px;color:#64748b">
+                <p class="mb-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" class="me-1"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Chọn nhân viên trước, sau đó chọn hợp đồng đang <strong>ACTIVE</strong>.
+                </p>
+                <p class="mb-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" class="me-1"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Mỗi nhân viên có thể nhận nhiều loại phụ cấp khác nhau theo cùng hợp đồng.
+                </p>
+                <p class="mb-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" class="me-1"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Số tiền phải lớn hơn 0 (đơn vị: VNĐ).
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

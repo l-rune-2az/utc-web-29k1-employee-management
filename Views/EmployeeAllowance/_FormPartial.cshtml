@@ -1,0 +1,51 @@
+@model EmployeeAllowanceFormViewModel
+@{
+    bool isEdit = Model.Id != Guid.Empty;
+    string action = isEdit ? "Edit" : "Create";
+}
+<form asp-action="@action" asp-route-id="@(isEdit ? Model.Id.ToString() : null)"
+      method="post">
+    @Html.AntiForgeryToken()
+
+    @if (!isEdit)
+    {
+        <div class="mb-3">
+            <label asp-for="EmpId" class="form-label">Nhân viên</label>
+            <select asp-for="EmpId" asp-items="Model.EmployeeOptions" class="form-select"></select>
+            <span asp-validation-for="EmpId" class="text-danger" style="font-size:12px"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="ContractId" class="form-label">Hợp đồng</label>
+            <select asp-for="ContractId" asp-items="Model.ContractOptions" class="form-select"></select>
+            <span asp-validation-for="ContractId" class="text-danger" style="font-size:12px"></span>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="EmpId" />
+        <input type="hidden" asp-for="ContractId" />
+    }
+
+    <div class="mb-3">
+        <label asp-for="AllowanceId" class="form-label">Loại phụ cấp</label>
+        <select asp-for="AllowanceId" asp-items="Model.AllowanceOptions" class="form-select"></select>
+        <span asp-validation-for="AllowanceId" class="text-danger" style="font-size:12px"></span>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <label asp-for="Amount" class="form-label">Số tiền (VNĐ)</label>
+            <input asp-for="Amount" type="number" class="form-control" step="10000" min="1" />
+            <span asp-validation-for="Amount" class="text-danger" style="font-size:12px"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="EffectiveDate" class="form-label">Ngày hiệu lực</label>
+            <input asp-for="EffectiveDate" type="date" class="form-control" />
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 pt-3 border-top">
+        <button type="submit" class="btn btn-primary px-4">@(isEdit ? "Cập nhật" : "Lưu")</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+    </div>
+</form>

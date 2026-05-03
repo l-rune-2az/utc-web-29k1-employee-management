@@ -47,7 +47,6 @@ public class EmployeeAllowanceController : BaseController
     {
         if (User.IsInRole("HR_MANAGER"))
         {
-            // HR_MANAGER: xem tất cả hoặc lọc theo nhân viên
             List<EmployeeAllowance> allowances = empId.HasValue
                 ? await _service.GetByEmployeeIdAsync(empId.Value)
                 : await _service.GetAllAsync();
@@ -59,10 +58,10 @@ public class EmployeeAllowanceController : BaseController
             EmployeeAllowanceIndexViewModel vm = new EmployeeAllowanceIndexViewModel
             {
                 EmployeeAllowances = allowances,
-                FilterEmpId = empId,
-                EmployeeOptions = employees.Select(e => new SelectListItem($"{e.Code} - {e.FullName}", e.Id.ToString())).ToList(),
-                ContractOptions  = contracts.Select(c => new SelectListItem(c.ContractNumber, c.Id.ToString())).ToList(),
-                AllowanceOptions = configs.Select(a => new SelectListItem(a.Name, a.Id.ToString())).ToList()
+                FilterEmpId        = empId,
+                EmployeeOptions    = employees.Select(e => new SelectListItem($"{e.Code} - {e.FullName}", e.Id.ToString())).ToList(),
+                ContractOptions    = contracts.Select(c => new SelectListItem(c.ContractNumber, c.Id.ToString())).ToList(),
+                AllowanceOptions   = configs.Select(a => new SelectListItem(a.Name, a.Id.ToString())).ToList()
             };
             vm.EmployeeOptions.Insert(0, new SelectListItem("-- Tất cả nhân viên --", ""));
             vm.ContractOptions.Insert(0, new SelectListItem("-- Chọn hợp đồng --", ""));
@@ -71,52 +70,38 @@ public class EmployeeAllowanceController : BaseController
         }
         else
         {
-            // EMPLOYEE: chỉ xem phụ cấp của mình
             if (CurrentEmployeeId == null) return Forbid();
-
             List<EmployeeAllowance> allowances = await _service.GetByEmployeeIdAsync(CurrentEmployeeId.Value);
             return View(new EmployeeAllowanceIndexViewModel { EmployeeAllowances = allowances });
         }
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPost("api/employee-allowances")]
     [Authorize(Roles = "HR_MANAGER")]
-    public async Task<IActionResult> Create(EmployeeAllowanceFormViewModel vm)
+    public async Task<IActionResult> Create([FromBody] EmployeeAllowanceFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _service.CreateAsync(vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Thêm phụ cấp thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPut("api/employee-allowances/{id:guid}")]
     [Authorize(Roles = "HR_MANAGER")]
-    public async Task<IActionResult> Edit(Guid id, EmployeeAllowanceFormViewModel vm)
+    public async Task<IActionResult> Update(Guid id, [FromBody] EmployeeAllowanceFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _service.UpdateAsync(id, vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Cập nhật phụ cấp thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPatch("api/employee-allowances/{id:guid}/deactivate")]
     [Authorize(Roles = "HR_MANAGER")]
     public async Task<IActionResult> Deactivate(Guid id)
     {
         string? error = await _service.DeactivateAsync(id, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Đã vô hiệu hóa phụ cấp!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
     private async Task PopulateDropdowns(EmployeeAllowanceFormViewModel vm)

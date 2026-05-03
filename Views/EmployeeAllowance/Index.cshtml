@@ -141,7 +141,7 @@
 @section Scripts {
 <script>
 (function () {
-    var modal = new bootstrap.Modal(document.getElementById('allowModal'));
+    const modal = new bootstrap.Modal(document.getElementById('allowModal'));
     document.getElementById('allowEmpSelect').addEventListener('change', function () {
         document.getElementById('allowEmpId').value = this.value;
     });
@@ -150,7 +150,6 @@
     });
     document.getElementById('allowCreateBtn').addEventListener('click', function () {
         document.getElementById('allowModalTitle').textContent = 'Gán phụ cấp nhân viên';
-        document.getElementById('allowForm').action = '@Url.Action("Create","EmployeeAllowance")';
         document.getElementById('allowId').value = '';
         document.getElementById('allowEmpId').value = '';
         document.getElementById('allowContractId').value = '';
@@ -166,7 +165,6 @@
     document.querySelectorAll('.allowEditBtn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.getElementById('allowModalTitle').textContent = 'Chỉnh sửa phụ cấp';
-            document.getElementById('allowForm').action = '@Url.Action("Edit","EmployeeAllowance")/' + this.dataset.id;
             document.getElementById('allowId').value = this.dataset.id;
             document.getElementById('allowEmpId').value = this.dataset.empid;
             document.getElementById('allowContractId').value = this.dataset.contractid;
@@ -176,6 +174,36 @@
             document.getElementById('allowDate').value = this.dataset.date;
             document.getElementById('allowSubmitBtn').textContent = 'Cập nhật';
             modal.show();
+        });
+    });
+    document.getElementById('allowForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('allowId').value;
+        const payload = {
+            empId: document.getElementById('allowEmpId').value,
+            contractId: document.getElementById('allowContractId').value,
+            allowanceId: document.getElementById('allowAllowanceId').value,
+            amount: parseFloat(document.getElementById('allowAmount').value),
+            effectiveDate: document.getElementById('allowDate').value || null
+        };
+        const url = id ? '/api/employee-allowances/' + id : '/api/employee-allowances';
+        const method = id ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { window.location.reload(); }
+            else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+        } catch { alert('Có lỗi kết nối'); }
+    });
+    document.querySelectorAll('form[action*="Deactivate"]').forEach(function (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const parts = this.action.split('/');
+            const id = parts[parts.length - 1];
+            try {
+                const res = await fetch('/api/employee-allowances/' + id + '/deactivate', { method: 'PATCH' });
+                if (res.ok) { window.location.reload(); }
+                else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+            } catch { alert('Có lỗi kết nối'); }
         });
     });
 }());

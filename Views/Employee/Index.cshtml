@@ -1,0 +1,192 @@
+@model EmployeeIndexViewModel
+@{
+    ViewData["Title"] = "Quản lý Nhân viên";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Quản lý Nhân viên</h4>
+    <button id="empCreateBtn" type="button" class="btn btn-primary">+ Thêm nhân viên</button>
+</div>
+
+@* Form tìm kiếm và lọc theo phòng ban, trạng thái *@
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-4">
+        <input type="text" name="keyword" value="@Model.SearchKeyword"
+               class="form-control" placeholder="Tìm tên, mã, email nhân viên..." />
+    </div>
+    <div class="col-md-3">
+        <select name="deptId" class="form-select">
+            @foreach (var opt in Model.DepartmentOptions)
+            {
+                <option value="@opt.Value" selected="@(opt.Value == Model.FilterDeptId?.ToString())">@opt.Text</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="ACTIVE" selected="@(Model.FilterStatus == "ACTIVE")">Đang làm việc</option>
+            <option value="INACTIVE" selected="@(Model.FilterStatus == "INACTIVE")">Đã nghỉ việc</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Lọc</button>
+        <a asp-action="Index" class="btn btn-icon btn-outline-secondary" title="Xóa bộ lọc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </a>
+    </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="">
+                <tr>
+                    <th>Mã NV</th>
+                    <th>Họ và tên</th>
+                    <th>Giới tính</th>
+                    <th>Email</th>
+                    <th>Phòng ban</th>
+                    <th>Chức vụ</th>
+                    <th>Trạng thái</th>
+                    <th style="width:108px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var emp in Model.Employees)
+                {
+                    <tr>
+                        <td><code>@emp.Code</code></td>
+                        <td class="fw-semibold">@emp.FullName</td>
+                        <td>
+                            @(emp.Gender == "MALE" ? "Nam" : emp.Gender == "FEMALE" ? "Nữ" : "Khác")
+                        </td>
+                        <td>@emp.Email</td>
+                        <td>@(emp.Department?.Name ?? "--")</td>
+                        <td>@(emp.Position?.Name ?? "--")</td>
+                        <td>
+                            <span class="badge @(emp.Status == "ACTIVE" ? "badge-active" : "badge-inactive")">
+                                @(emp.Status == "ACTIVE" ? "Đang làm" : "Đã nghỉ")
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@emp.Id"
+                               class="btn btn-icon btn-outline-secondary" title="Xem chi tiết">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </a>
+                            <button type="button" class="btn btn-icon btn-outline-primary empEditBtn" title="Sửa"
+                                    data-id="@emp.Id" data-name="@emp.FullName" data-gender="@(emp.Gender ?? "MALE")"
+                                    data-dob="@(emp.DateOfBirth?.ToString("yyyy-MM-dd") ?? "")"
+                                    data-idcard="@(emp.IdCard ?? "")" data-email="@emp.Email"
+                                    data-phone="@(emp.Phone ?? "")" data-address="@(emp.Address ?? "")"
+                                    data-hiredate="@(emp.HireDate?.ToString("yyyy-MM-dd") ?? "")"
+                                    data-deptid="@(emp.DeptId?.ToString() ?? "")"
+                                    data-positionid="@(emp.PositionId?.ToString() ?? "")">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            <form asp-action="ToggleStatus" asp-route-id="@emp.Id"
+                                  method="post" class="toggle-form"
+                                  onsubmit="return confirm('@(emp.Status == "ACTIVE" ? "Cho nhân viên này nghỉ việc?" : "Kích hoạt lại nhân viên này?")')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="toggle-btn @(emp.Status == "ACTIVE" ? "is-on" : "")"
+                                        title="@(emp.Status == "ACTIVE" ? "Đang làm việc — nhấn để cho nghỉ" : "Đã nghỉ — nhấn để kích hoạt lại")">
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Employees.Any())
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-5">Dữ liệu trống</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData) {
+        { "Page", Model.Page }, { "TotalPages", Model.TotalPages },
+        { "TotalCount", Model.TotalCount }, { "PageSize", Model.PageSize }
+    })
+</div>
+
+<div class="modal fade" id="empModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px">
+            <div class="modal-header"><h5 class="modal-title" id="empModalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="empForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="empId" name="Id" />
+                    <p class="form-section">Thông tin cá nhân</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6"><label class="form-label">Họ và tên <span class="text-danger">*</span></label><input id="empName" name="FullName" class="form-control" required /></div>
+                        <div class="col-md-3"><label class="form-label">Giới tính</label>
+                            <select id="empGender" name="Gender" class="form-select">
+                                <option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3"><label class="form-label">Ngày sinh</label><input id="empDob" name="DateOfBirth" type="date" class="form-control" /></div>
+                        <div class="col-md-4"><label class="form-label">CMND/CCCD</label><input id="empIdCard" name="IdCard" class="form-control" /></div>
+                        <div class="col-md-4"><label class="form-label">Email <span class="text-danger">*</span></label><input id="empEmail" name="Email" type="email" class="form-control" required /></div>
+                        <div class="col-md-4"><label class="form-label">Điện thoại</label><input id="empPhone" name="Phone" class="form-control" /></div>
+                        <div class="col-12"><label class="form-label">Địa chỉ</label><input id="empAddress" name="Address" class="form-control" /></div>
+                    </div>
+                    <p class="form-section">Thông tin công việc</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4"><label class="form-label">Ngày vào làm</label><input id="empHireDate" name="HireDate" type="date" class="form-control" /></div>
+                        <div class="col-md-4"><label class="form-label">Phòng ban</label>
+                            <select id="empDeptId" name="DeptId" class="form-select">
+                                @foreach (var opt in Model.DepartmentOptions) { <option value="@opt.Value">@opt.Text</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-4"><label class="form-label">Chức vụ</label>
+                            <select id="empPositionId" name="PositionId" class="form-select">
+                                @foreach (var opt in Model.PositionOptions) { <option value="@opt.Value">@opt.Text</option> }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <button type="submit" id="empSubmitBtn" class="btn btn-primary px-4">Lưu</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    var modal = new bootstrap.Modal(document.getElementById('empModal'));
+    document.getElementById('empCreateBtn').addEventListener('click', function () {
+        document.getElementById('empModalTitle').textContent = 'Thêm nhân viên mới';
+        document.getElementById('empForm').action = '@Url.Action("Create","Employee")';
+        ['empId','empName','empDob','empIdCard','empEmail','empPhone','empAddress','empHireDate'].forEach(function(id){ document.getElementById(id).value = ''; });
+        document.getElementById('empGender').value = 'MALE';
+        document.getElementById('empDeptId').value = '';
+        document.getElementById('empPositionId').value = '';
+        document.getElementById('empSubmitBtn').textContent = 'Lưu';
+        modal.show();
+    });
+    document.querySelectorAll('.empEditBtn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('empModalTitle').textContent = 'Chỉnh sửa nhân viên';
+            document.getElementById('empForm').action = '@Url.Action("Edit","Employee")/' + this.dataset.id;
+            document.getElementById('empId').value = this.dataset.id;
+            document.getElementById('empName').value = this.dataset.name;
+            document.getElementById('empGender').value = this.dataset.gender;
+            document.getElementById('empDob').value = this.dataset.dob;
+            document.getElementById('empIdCard').value = this.dataset.idcard;
+            document.getElementById('empEmail').value = this.dataset.email;
+            document.getElementById('empPhone').value = this.dataset.phone;
+            document.getElementById('empAddress').value = this.dataset.address;
+            document.getElementById('empHireDate').value = this.dataset.hiredate;
+            document.getElementById('empDeptId').value = this.dataset.deptid || '';
+            document.getElementById('empPositionId').value = this.dataset.positionid || '';
+            document.getElementById('empSubmitBtn').textContent = 'Cập nhật';
+            modal.show();
+        });
+    });
+}());
+</script>
+}

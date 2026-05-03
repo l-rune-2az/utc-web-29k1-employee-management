@@ -1,0 +1,114 @@
+@model ContractDetailViewModel
+@{
+    ViewData["Title"] = "Chi tiết hợp đồng";
+    var c = Model.Contract;
+    var (statusClass, statusText) = c.Status switch
+    {
+        "ACTIVE"     => ("badge-active",     "Đang hiệu lực"),
+        "EXPIRED"    => ("badge-expired",    "Hết hạn"),
+        _            => ("badge-terminated", "Đã chấm dứt")
+    };
+    string typeText = c.ContractType switch { "PROBATION" => "Thử việc", "SEASONAL" => "Thời vụ", _ => "Chính thức" };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a asp-action="Index" class="btn btn-icon btn-outline-secondary me-2" title="Quay lại">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <span class="fw-bold fs-5">@c.ContractNumber</span>
+        <span class="badge ms-2 @statusClass">@statusText</span>
+    </div>
+    @if (c.Status == "ACTIVE")
+    {
+        <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-primary btn-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" class="me-1"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Chỉnh sửa
+        </a>
+    }
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header fw-semibold bg-transparent border-bottom py-3">Nhân viên</div>
+            <div class="card-body">
+                @if (c.Employee != null)
+                {
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <div class="fw-semibold">@c.Employee.FullName</div>
+                            <code class="small">@c.Employee.Code</code>
+                            <span class="badge ms-1 @(c.Employee.Status == "ACTIVE" ? "badge-active" : "badge-inactive") small">
+                                @(c.Employee.Status == "ACTIVE" ? "Đang làm" : "Đã nghỉ")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a asp-controller="Employee" asp-action="Details" asp-route-id="@c.Employee.Id"
+                           class="btn btn-sm btn-outline-secondary">Xem hồ sơ nhân viên →</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header fw-semibold bg-transparent border-bottom py-3">Thông tin hợp đồng</div>
+            <div class="card-body">
+                <dl class="row mb-0 g-2">
+                    <dt class="col-5 text-muted fw-normal">Loại HĐ</dt>
+                    <dd class="col-7">@typeText</dd>
+                    <dt class="col-5 text-muted fw-normal">Ngày bắt đầu</dt>
+                    <dd class="col-7">@c.StartDate.ToString("dd/MM/yyyy")</dd>
+                    <dt class="col-5 text-muted fw-normal">Ngày kết thúc</dt>
+                    <dd class="col-7">@(c.EndDate.HasValue ? c.EndDate.Value.ToString("dd/MM/yyyy") : "Không thời hạn")</dd>
+                    <dt class="col-5 text-muted fw-normal">Lương cơ bản</dt>
+                    <dd class="col-7 fw-semibold">@c.BaseSalary.ToString("N0") ₫</dd>
+                    <dt class="col-5 text-muted fw-normal">Lương thực nhận</dt>
+                    <dd class="col-7 fw-semibold">@c.OfferSalary.ToString("N0") ₫ <span class="text-muted fw-normal small">(@c.SalaryType)</span></dd>
+                    @if (!string.IsNullOrWhiteSpace(c.Notes))
+                    {
+                        <dt class="col-5 text-muted fw-normal">Ghi chú</dt>
+                        <dd class="col-7 text-muted">@c.Notes</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header fw-semibold bg-transparent border-bottom py-3 d-flex justify-content-between align-items-center">
+        <span>Phụ cấp theo hợp đồng <span class="badge bg-secondary ms-1">@Model.Allowances.Count</span></span>
+        @if (c.Status == "ACTIVE")
+        {
+            <a asp-controller="EmployeeAllowance" asp-action="Index" class="btn btn-sm btn-outline-primary">+ Thêm</a>
+        }
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Loại phụ cấp</th><th>Số tiền</th><th>Ngày áp dụng</th><th>Trạng thái</th><th style="width:48px"></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.Allowances)
+                {
+                    <tr>
+                        <td>@a.AllowanceConfig?.Name</td>
+                        <td class="fw-semibold">@a.Amount.ToString("N0") ₫</td>
+                        <td>@(a.EffectiveDate.HasValue ? a.EffectiveDate.Value.ToString("dd/MM/yyyy") : "--")</td>
+                        <td><span class="badge @(a.Status == "ACTIVE" ? "badge-active" : "badge-inactive")">@(a.Status == "ACTIVE" ? "Đang áp dụng" : "Đã dừng")</span></td>
+                        <td><a asp-controller="EmployeeAllowance" asp-action="Edit" asp-route-id="@a.Id" class="btn btn-icon btn-outline-primary" title="Sửa">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </a></td>
+                    </tr>
+                }
+                @if (!Model.Allowances.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">Chưa có phụ cấp</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

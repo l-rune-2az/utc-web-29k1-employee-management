@@ -1,0 +1,232 @@
+@model ContractIndexViewModel
+@{
+    ViewData["Title"] = "Quản lý Hợp đồng";
+    bool isHrManager = User.IsInRole("HR_MANAGER");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">@(isHrManager ? "Quản lý Hợp đồng" : "Hợp đồng của tôi")</h4>
+    @if (isHrManager)
+    {
+        <button id="contractCreateBtn" type="button" class="btn btn-primary">+ Thêm hợp đồng</button>
+    }
+</div>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-4">
+        <input type="text" name="keyword" value="@Model.SearchKeyword"
+               class="form-control" placeholder="Tìm số HĐ hoặc tên nhân viên..." />
+    </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="ACTIVE" selected="@(Model.FilterStatus == "ACTIVE")">Đang hiệu lực</option>
+            <option value="EXPIRED" selected="@(Model.FilterStatus == "EXPIRED")">Hết hạn</option>
+            <option value="TERMINATED" selected="@(Model.FilterStatus == "TERMINATED")">Đã chấm dứt</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Lọc</button>
+        <a asp-action="Index" class="btn btn-icon btn-outline-secondary" title="Xóa bộ lọc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </a>
+    </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="">
+                <tr>
+                    <th>Số hợp đồng</th>
+                    @if (isHrManager) { <th>Nhân viên</th> }
+                    <th>Loại HĐ</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Lương cơ bản</th>
+                    <th>Trạng thái</th>
+                    @if (isHrManager) { <th style="width:108px"></th> }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Contracts)
+                {
+                    var (cls, txt) = c.Status switch
+                    {
+                        "ACTIVE"  => ("badge-active",     "Hiệu lực"),
+                        "EXPIRED" => ("badge-expired",    "Hết hạn"),
+                        _         => ("badge-terminated", "Đã chấm dứt")
+                    };
+                    <tr>
+                        <td><code>@c.ContractNumber</code></td>
+                        @if (isHrManager) { <td>@c.Employee?.FullName</td> }
+                        <td>@(c.ContractType switch { "PROBATION" => "Thử việc", "SEASONAL" => "Thời vụ", _ => "Chính thức" })</td>
+                        <td>@c.StartDate.ToString("dd/MM/yyyy")</td>
+                        <td>@(c.EndDate.HasValue ? c.EndDate.Value.ToString("dd/MM/yyyy") : "Không thời hạn")</td>
+                        <td>@c.BaseSalary.ToString("N0") ₫</td>
+                        <td><span class="badge @cls">@txt</span></td>
+                        @if (isHrManager)
+                        {
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@c.Id" class="btn btn-icon btn-outline-secondary" title="Xem chi tiết">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </a>
+                                <button type="button" class="btn btn-icon btn-outline-primary contractEditBtn" title="Sửa"
+                                        data-id="@c.Id" data-empid="@c.EmpId"
+                                        data-number="@c.ContractNumber" data-type="@c.ContractType"
+                                        data-start="@c.StartDate.ToString("yyyy-MM-dd")"
+                                        data-end="@(c.EndDate?.ToString("yyyy-MM-dd") ?? "")"
+                                        data-base="@c.BaseSalary" data-offer="@c.OfferSalary"
+                                        data-salarytype="@c.SalaryType" data-notes="@(c.Notes ?? "")">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                @if (c.Status == "ACTIVE")
+                                {
+                                    <form asp-action="Deactivate" asp-route-id="@c.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Chấm dứt hợp đồng này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-icon btn-outline-danger" title="Chấm dứt">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+                @if (!Model.Contracts.Any())
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-5">Dữ liệu trống</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData) {
+        { "Page", Model.Page }, { "TotalPages", Model.TotalPages },
+        { "TotalCount", Model.TotalCount }, { "PageSize", Model.PageSize }
+    })
+</div>
+
+@if (isHrManager)
+{
+<div class="modal fade" id="contractModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px">
+            <div class="modal-header"><h5 class="modal-title" id="contractModalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="contractForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="contractId" name="Id" />
+                    <p class="form-section">Thông tin chung</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nhân viên <span class="text-danger">*</span></label>
+                            <select id="contractEmpId" name="EmpId" class="form-select">
+                                @foreach (var opt in Model.EmployeeOptions) { <option value="@opt.Value">@opt.Text</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Loại hợp đồng</label>
+                            <select id="contractType" name="ContractType" class="form-select">
+                                <option value="PROBATION">Thử việc</option>
+                                <option value="OFFICIAL">Chính thức</option>
+                                <option value="SEASONAL">Thời vụ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Loại lương</label>
+                            <select id="contractSalaryType" name="SalaryType" class="form-select">
+                                <option value="GROSS">Gross (trước thuế)</option>
+                                <option value="NET">Net (sau thuế)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="form-section">Thời hạn & Lương</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3"><label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label><input id="contractStart" name="StartDate" type="date" class="form-control" required /></div>
+                        <div class="col-md-3"><label class="form-label">Ngày kết thúc</label><input id="contractEnd" name="EndDate" type="date" class="form-control" /><div class="form-text">Để trống = không xác định</div></div>
+                        <div class="col-md-3"><label class="form-label">Lương cơ bản (₫) <span class="text-danger">*</span></label><input id="contractBase" name="BaseSalary" type="number" class="form-control" step="100000" required /></div>
+                        <div class="col-md-3"><label class="form-label">Lương thỏa thuận (₫)</label><input id="contractOffer" name="OfferSalary" type="number" class="form-control" step="100000" /></div>
+                        <div class="col-12"><label class="form-label">Ghi chú</label><textarea id="contractNotes" name="Notes" class="form-control" rows="2"></textarea></div>
+                    </div>
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <button type="submit" id="contractSubmitBtn" class="btn btn-primary px-4">Lưu</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const modal = new bootstrap.Modal(document.getElementById('contractModal'));
+    document.getElementById('contractCreateBtn').addEventListener('click', function () {
+        document.getElementById('contractModalTitle').textContent = 'Thêm hợp đồng mới';
+        document.getElementById('contractId').value = '';
+        document.getElementById('contractEmpId').value = '';
+        document.getElementById('contractType').value = 'OFFICIAL';
+        document.getElementById('contractSalaryType').value = 'GROSS';
+        document.getElementById('contractStart').value = '';
+        document.getElementById('contractEnd').value = '';
+        document.getElementById('contractBase').value = '';
+        document.getElementById('contractOffer').value = '';
+        document.getElementById('contractNotes').value = '';
+        document.getElementById('contractSubmitBtn').textContent = 'Lưu';
+        modal.show();
+    });
+    document.querySelectorAll('.contractEditBtn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('contractModalTitle').textContent = 'Chỉnh sửa hợp đồng';
+            document.getElementById('contractId').value = this.dataset.id;
+            document.getElementById('contractEmpId').value = this.dataset.empid;
+            document.getElementById('contractType').value = this.dataset.type;
+            document.getElementById('contractSalaryType').value = this.dataset.salarytype;
+            document.getElementById('contractStart').value = this.dataset.start;
+            document.getElementById('contractEnd').value = this.dataset.end;
+            document.getElementById('contractBase').value = this.dataset.base;
+            document.getElementById('contractOffer').value = this.dataset.offer;
+            document.getElementById('contractNotes').value = this.dataset.notes;
+            document.getElementById('contractSubmitBtn').textContent = 'Cập nhật';
+            modal.show();
+        });
+    });
+    document.getElementById('contractForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('contractId').value;
+        const payload = {
+            empId: document.getElementById('contractEmpId').value,
+            contractType: document.getElementById('contractType').value,
+            startDate: document.getElementById('contractStart').value,
+            endDate: document.getElementById('contractEnd').value || null,
+            baseSalary: parseFloat(document.getElementById('contractBase').value),
+            offerSalary: parseFloat(document.getElementById('contractOffer').value),
+            salaryType: document.getElementById('contractSalaryType').value,
+            notes: document.getElementById('contractNotes').value || null
+        };
+        const url = id ? '/api/contracts/' + id : '/api/contracts';
+        const method = id ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { window.location.reload(); }
+            else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+        } catch { alert('Có lỗi kết nối'); }
+    });
+    document.querySelectorAll('form[action*="Deactivate"]').forEach(function (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const parts = this.action.split('/');
+            const id = parts[parts.length - 1];
+            try {
+                const res = await fetch('/api/contracts/' + id + '/terminate', { method: 'PATCH' });
+                if (res.ok) { window.location.reload(); }
+                else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+            } catch { alert('Có lỗi kết nối'); }
+        });
+    });
+}());
+</script>
+}
+}

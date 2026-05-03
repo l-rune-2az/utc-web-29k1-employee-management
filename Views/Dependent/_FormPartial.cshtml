@@ -1,0 +1,47 @@
+@model DependentFormViewModel
+@{
+    bool isEdit = Model.Id != Guid.Empty;
+    string action = isEdit ? "Edit" : "Create";
+}
+<form asp-action="@action" asp-route-id="@(isEdit ? Model.Id.ToString() : null)"
+      method="post">
+    @Html.AntiForgeryToken()
+
+    @if (!isEdit)
+    {
+        <div class="mb-3">
+            <label asp-for="EmpId" class="form-label">Nhân viên</label>
+            <select asp-for="EmpId" asp-items="Model.EmployeeOptions" class="form-select"></select>
+            <span asp-validation-for="EmpId" class="text-danger" style="font-size:12px"></span>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="EmpId" />
+    }
+
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <label asp-for="FullName" class="form-label">Họ và tên</label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger" style="font-size:12px"></span>
+        </div>
+        <div class="col-12">
+            <label asp-for="Relationship" class="form-label">Mối quan hệ</label>
+            <select asp-for="Relationship" asp-items="Model.RelationshipOptions" class="form-select"></select>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="DateOfBirth" class="form-label">Ngày sinh</label>
+            <input asp-for="DateOfBirth" type="date" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label asp-for="NationalId" class="form-label">Số CMND/CCCD</label>
+            <input asp-for="NationalId" class="form-control" placeholder="Nếu có" />
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 pt-3 border-top">
+        <button type="submit" class="btn btn-primary px-4">@(isEdit ? "Cập nhật" : "Lưu")</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+    </div>
+</form>

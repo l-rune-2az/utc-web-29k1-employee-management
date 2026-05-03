@@ -1,0 +1,203 @@
+@model DependentIndexViewModel
+@{
+    ViewData["Title"] = "Người phụ thuộc";
+    bool isHrManager = User.IsInRole("HR_MANAGER");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">@(isHrManager ? "Người phụ thuộc nhân viên" : "Người phụ thuộc của tôi")</h4>
+    @if (isHrManager)
+    {
+        <button id="depCreateBtn" type="button" class="btn btn-primary">+ Thêm người phụ thuộc</button>
+    }
+</div>
+
+@if (isHrManager)
+{
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <select name="empId" class="form-select">
+                @foreach (var opt in Model.EmployeeOptions)
+                {
+                    <option value="@opt.Value" selected="@(opt.Value == Model.FilterEmpId?.ToString())">@opt.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-secondary">Lọc</button>
+            <a asp-action="Index" class="btn btn-icon btn-outline-secondary" title="Xóa bộ lọc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </a>
+        </div>
+    </form>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="">
+                <tr>
+                    @if (isHrManager) { <th>Nhân viên</th> }
+                    <th>Họ và tên</th>
+                    <th>Mối quan hệ</th>
+                    <th>Ngày sinh</th>
+                    <th>CMND/CCCD</th>
+                    <th>Trạng thái</th>
+                    @if (isHrManager) { <th style="width:72px"></th> }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Dependents)
+                {
+                    <tr>
+                        @if (isHrManager) { <td>@d.Employee?.FullName</td> }
+                        <td class="fw-semibold">@d.FullName</td>
+                        <td>@(d.Relationship switch { "SPOUSE" => "Vợ/Chồng", "CHILD" => "Con", "PARENT" => "Bố/Mẹ", _ => d.Relationship })</td>
+                        <td>@(d.DateOfBirth.HasValue ? d.DateOfBirth.Value.ToString("dd/MM/yyyy") : "--")</td>
+                        <td>@(d.NationalId ?? "--")</td>
+                        <td>
+                            <span class="badge @(d.Status == "ACTIVE" ? "badge-active" : "badge-inactive")">
+                                @(d.Status == "ACTIVE" ? "Đang khai" : "Đã hủy")
+                            </span>
+                        </td>
+                        @if (isHrManager)
+                        {
+                            <td class="text-end">
+                                <button type="button" class="btn btn-icon btn-outline-primary depEditBtn" title="Sửa"
+                                        data-id="@d.Id" data-empid="@d.EmpId" data-name="@d.FullName"
+                                        data-rel="@(d.Relationship ?? "CHILD")"
+                                        data-dob="@(d.DateOfBirth?.ToString("yyyy-MM-dd") ?? "")"
+                                        data-nid="@(d.NationalId ?? "")">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                @if (d.Status == "ACTIVE")
+                                {
+                                    <form asp-action="Deactivate" asp-route-id="@d.Id" method="post" class="toggle-form"
+                                          onsubmit="return confirm('Hủy khai người phụ thuộc này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-icon btn-outline-danger" title="Hủy khai">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+                @if (!Model.Dependents.Any())
+                {
+                    <tr><td colspan="7" class="text-center text-muted py-5">Dữ liệu trống</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (isHrManager)
+{
+<div class="modal fade" id="depModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px">
+            <div class="modal-header"><h5 class="modal-title" id="depModalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="depForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="depId" name="Id" />
+                    <input type="hidden" id="depEmpId" name="EmpId" />
+                    <div id="depEmpSelectWrap" class="mb-3">
+                        <label class="form-label">Nhân viên <span class="text-danger">*</span></label>
+                        <select id="depEmpSelect" class="form-select">
+                            @foreach (var opt in Model.EmployeeOptions) { <option value="@opt.Value">@opt.Text</option> }
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12"><label class="form-label">Họ và tên <span class="text-danger">*</span></label><input id="depName" name="FullName" class="form-control" required /></div>
+                        <div class="col-12">
+                            <label class="form-label">Mối quan hệ</label>
+                            <select id="depRel" name="Relationship" class="form-select">
+                                <option value="SPOUSE">Vợ/Chồng</option>
+                                <option value="CHILD">Con</option>
+                                <option value="PARENT">Bố/Mẹ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Ngày sinh</label><input id="depDob" name="DateOfBirth" type="date" class="form-control" /></div>
+                        <div class="col-md-6"><label class="form-label">CMND/CCCD</label><input id="depNid" name="NationalId" class="form-control" /></div>
+                    </div>
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <button type="submit" id="depSubmitBtn" class="btn btn-primary px-4">Lưu</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const modal = new bootstrap.Modal(document.getElementById('depModal'));
+    document.getElementById('depCreateBtn').addEventListener('click', function () {
+        document.getElementById('depModalTitle').textContent = 'Thêm người phụ thuộc';
+        document.getElementById('depId').value = '';
+        document.getElementById('depEmpId').value = '';
+        document.getElementById('depEmpSelectWrap').style.display = '';
+        document.getElementById('depEmpSelect').value = '';
+        document.getElementById('depName').value = '';
+        document.getElementById('depRel').value = 'CHILD';
+        document.getElementById('depDob').value = '';
+        document.getElementById('depNid').value = '';
+        document.getElementById('depSubmitBtn').textContent = 'Lưu';
+        modal.show();
+    });
+    document.getElementById('depEmpSelect').addEventListener('change', function () {
+        document.getElementById('depEmpId').value = this.value;
+    });
+    document.querySelectorAll('.depEditBtn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('depModalTitle').textContent = 'Chỉnh sửa người phụ thuộc';
+            document.getElementById('depId').value = this.dataset.id;
+            document.getElementById('depEmpId').value = this.dataset.empid;
+            document.getElementById('depEmpSelectWrap').style.display = 'none';
+            document.getElementById('depName').value = this.dataset.name;
+            document.getElementById('depRel').value = this.dataset.rel;
+            document.getElementById('depDob').value = this.dataset.dob;
+            document.getElementById('depNid').value = this.dataset.nid;
+            document.getElementById('depSubmitBtn').textContent = 'Cập nhật';
+            modal.show();
+        });
+    });
+    document.getElementById('depForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('depId').value;
+        const payload = {
+            empId: document.getElementById('depEmpId').value,
+            fullName: document.getElementById('depName').value,
+            relationship: document.getElementById('depRel').value,
+            dateOfBirth: document.getElementById('depDob').value || null,
+            nationalId: document.getElementById('depNid').value || null
+        };
+        const url = id ? '/api/dependents/' + id : '/api/dependents';
+        const method = id ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { window.location.reload(); }
+            else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+        } catch { alert('Có lỗi kết nối'); }
+    });
+    document.querySelectorAll('.toggle-form').forEach(function (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const parts = this.action.split('/');
+            const id = parts[parts.length - 1];
+            try {
+                const res = await fetch('/api/dependents/' + id + '/deactivate', { method: 'PATCH' });
+                if (res.ok) { window.location.reload(); }
+                else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+            } catch { alert('Có lỗi kết nối'); }
+        });
+    });
+}());
+</script>
+}
+}

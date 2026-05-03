@@ -1,0 +1,165 @@
+@model Employee
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    var contracts = ViewBag.Contracts as List<EmployeeManagement.Models.Entities.Contract> ?? new();
+    var allowances = ViewBag.Allowances as List<EmployeeManagement.Models.Entities.EmployeeAllowance> ?? new();
+    var dependents = ViewBag.Dependents as List<EmployeeManagement.Models.Entities.EmployeeDependent> ?? new();
+}
+
+<h4 class="mb-4">Hồ sơ cá nhân</h4>
+
+<div class="row g-4">
+    @* Thông tin cơ bản *@
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-primary text-white fw-bold">Thông tin cơ bản</div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted" style="width:40%">Mã nhân viên</td>
+                        <td><code class="fw-bold">@Model.Code</code></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Họ và tên</td>
+                        <td class="fw-semibold">@Model.FullName</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Giới tính</td>
+                        <td>@(Model.Gender == "MALE" ? "Nam" : Model.Gender == "FEMALE" ? "Nữ" : "Khác")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Ngày sinh</td>
+                        <td>@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd/MM/yyyy") : "--")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">CMND/CCCD</td>
+                        <td>@(Model.IdCard ?? "--")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Email</td>
+                        <td>@Model.Email</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Điện thoại</td>
+                        <td>@(Model.Phone ?? "--")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Địa chỉ</td>
+                        <td>@(Model.Address ?? "--")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Ngày vào làm</td>
+                        <td>@(Model.HireDate.HasValue ? Model.HireDate.Value.ToString("dd/MM/yyyy") : "--")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Phòng ban</td>
+                        <td>@(Model.Department?.Name ?? "--")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Chức vụ</td>
+                        <td>@(Model.Position?.Name ?? "--")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* Hợp đồng *@
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-warning text-dark fw-bold">Hợp đồng lao động</div>
+            <div class="card-body p-0">
+                @if (contracts.Any())
+                {
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr><th>Số HĐ</th><th>Loại</th><th>Từ ngày</th><th>Trạng thái</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in contracts)
+                            {
+                                <tr>
+                                    <td><code>@c.ContractNumber</code></td>
+                                    <td>@(c.ContractType switch { "PROBATION" => "Thử việc", "SEASONAL" => "Thời vụ", _ => "Chính thức" })</td>
+                                    <td>@c.StartDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @{
+                                            var _cBadge = c.Status switch { "ACTIVE" => "badge-active", "EXPIRED" => "badge-expired", _ => "badge-terminated" };
+                                            var _cTxt   = c.Status switch { "ACTIVE" => "Hiệu lực", "EXPIRED" => "Hết hạn", _ => "Đã chấm dứt" };
+                                        }
+                                        <span class="badge @_cBadge">@_cTxt</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-muted text-center p-3">Chưa có hợp đồng</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Phụ cấp *@
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white fw-bold">Phụ cấp</div>
+            <div class="card-body p-0">
+                @if (allowances.Any())
+                {
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr><th>Loại phụ cấp</th><th>Số tiền</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in allowances.Where(a => a.Status == "ACTIVE"))
+                            {
+                                <tr>
+                                    <td>@a.AllowanceConfig?.Name</td>
+                                    <td>@a.Amount.ToString("N0") ₫</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-muted text-center p-3">Chưa có phụ cấp</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Người phụ thuộc *@
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-info text-white fw-bold">Người phụ thuộc</div>
+            <div class="card-body p-0">
+                @if (dependents.Any())
+                {
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr><th>Họ và tên</th><th>Quan hệ</th><th>Ngày sinh</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in dependents.Where(d => d.Status == "ACTIVE"))
+                            {
+                                <tr>
+                                    <td>@d.FullName</td>
+                                    <td>@(d.Relationship switch { "SPOUSE" => "Vợ/Chồng", "CHILD" => "Con", "PARENT" => "Bố/Mẹ", _ => d.Relationship })</td>
+                                    <td>@(d.DateOfBirth.HasValue ? d.DateOfBirth.Value.ToString("dd/MM/yyyy") : "--")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-muted text-center p-3">Chưa có người phụ thuộc</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

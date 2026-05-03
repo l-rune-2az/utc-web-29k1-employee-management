@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hợp đồng lao động — HRM System</title>
+<style>
+:root {
+  --primary-50:#eff6ff;--primary-100:#dbeafe;--primary-500:#3b82f6;
+  --primary-600:#2563eb;--primary-700:#1d4ed8;
+  --secondary-500:#94a3b8;--secondary-600:#64748b;--secondary-700:#475569;
+  --success-500:#10b981;
+  --warning-50:#fffbeb;--warning-500:#f59e0b;--warning-600:#d97706;
+  --error-50:#fef2f2;--error-500:#dc2626;--error-600:#dc2626;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;
+  --gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;
+  --gray-700:#334155;--gray-800:#1e293b;--gray-900:#0f172a;--white:#ffffff;
+  --font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif;
+  --font-size-xs:12px;--font-size-sm:14px;--font-size-base:16px;
+  --font-size-lg:18px;--font-size-xl:20px;--font-size-2xl:24px;--font-size-3xl:32px;
+  --font-weight-normal:400;--font-weight-medium:500;--font-weight-semibold:600;--font-weight-bold:700;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;
+  --space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:12px;--radius-xl:16px;--radius-full:9999px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.05);--shadow-md:0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg:0 8px 24px rgba(0,0,0,0.15);--shadow-xl:0 20px 40px rgba(0,0,0,0.15);
+  --transition-fast:0.15s ease;--transition-normal:0.3s cubic-bezier(0.4,0,0.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font-family);font-size:var(--font-size-base);line-height:1.6;
+  color:var(--gray-800);background:var(--gray-100);min-height:100vh;}
+
+/* Navbar */
+.navbar{
+  position:fixed;top:0;left:0;right:0;z-index:200;height:64px;
+  background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);
+  box-shadow:var(--shadow-sm);border-bottom:1px solid var(--gray-200);
+  display:flex;align-items:center;padding:0 var(--space-6);justify-content:space-between;
+}
+.navbar-brand{display:flex;align-items:center;gap:var(--space-3);}
+.navbar-logo{
+  width:36px;height:36px;background:linear-gradient(135deg,var(--primary-500),var(--primary-700));
+  border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;
+}
+.navbar-logo svg{width:20px;height:20px;stroke:white;fill:none;stroke-width:2;}
+.navbar-title{
+  font-size:var(--font-size-lg);font-weight:var(--font-weight-bold);
+  background:linear-gradient(135deg,var(--primary-500),var(--primary-700));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.navbar-right{display:flex;align-items:center;gap:var(--space-4);}
+.navbar-user{display:flex;align-items:center;gap:var(--space-3);}
+.user-avatar-nb{width:36px;height:36px;background:linear-gradient(135deg,var(--primary-500),var(--primary-700));
+  border-radius:var(--radius-full);display:flex;align-items:center;justify-content:center;
+  color:white;font-size:var(--font-size-sm);font-weight:var(--font-weight-bold);}
+.user-info{line-height:1.3;}
+.user-name{font-size:var(--font-size-sm);font-weight:var(--font-weight-semibold);color:var(--gray-800);}
+.user-role{font-size:var(--font-size-xs);color:var(--gray-500);}
+.btn-logout{
+  display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);
+  border:1.5px solid var(--gray-300);border-radius:var(--radius-md);background:transparent;
+  font-size:var(--font-size-sm);color:var(--gray-600);cursor:pointer;
+  transition:all var(--transition-fast);font-family:var(--font-family);font-weight:var(--font-weight-medium);
+}
+.btn-logout:hover{background:var(--error-50);border-color:var(--error-500);color:var(--error-600);}
+.btn-logout svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* Sidebar */
+.sidebar{
+  position:fixed;top:64px;left:0;bottom:0;width:240px;
+  background:var(--white);border-right:1px solid var(--gray-200);
+  z-index:100;overflow-y:auto;padding-bottom:var(--space-6);
+}
+.sidebar-section{padding:var(--space-4) var(--space-4) var(--space-1);font-size:11px;
+  font-weight:var(--font-weight-semibold);color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;}
+.sidebar-nav-item{
+  display:flex;align-items:center;gap:var(--space-3);
+  padding:var(--space-2) var(--space-3);margin:1px var(--space-2);
+  border-radius:var(--radius-md);color:var(--gray-600);font-size:var(--font-size-sm);
+  text-decoration:none;transition:all var(--transition-fast);cursor:pointer;font-weight:var(--font-weight-medium);
+}
+.sidebar-nav-item svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;}
+.sidebar-nav-item:hover{background:var(--gray-50);color:var(--gray-800);}
+.sidebar-nav-item.active{background:var(--primary-50);color:var(--primary-600);font-weight:var(--font-weight-semibold);}
+
+/* Main */
+.main-content{margin-left:240px;margin-top:64px;padding:var(--space-6);}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);
+  padding:var(--space-3) var(--space-5);border:none;border-radius:var(--radius-md);
+  font-size:var(--font-size-sm);font-weight:var(--font-weight-semibold);
+  text-decoration:none;cursor:pointer;transition:all var(--transition-normal);font-family:var(--font-family);
+}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+.btn-primary{background:linear-gradient(135deg,var(--primary-500),var(--primary-600));color:var(--white);box-shadow:var(--shadow-md);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.btn-ghost{background:transparent;color:var(--gray-600);border:1.5px solid var(--gray-300);}
+.btn-ghost:hover{background:var(--gray-50);border-color:var(--gray-400);color:var(--gray-800);}
+.btn-sm{padding:var(--space-2) var(--space-3);font-size:var(--font-size-xs);}
+.btn-warning{background:linear-gradient(135deg,var(--warning-500),var(--warning-600));color:var(--white);box-shadow:var(--shadow-sm);}
+.btn-warning:hover{transform:translateY(-1px);}
+.btn-error{background:linear-gradient(135deg,var(--error-500),#b91c1c);color:var(--white);box-shadow:var(--shadow-sm);}
+.btn-error:hover{transform:translateY(-1px);}
+
+/* Breadcrumb */
+.breadcrumb{display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);
+  color:var(--gray-500);margin-bottom:var(--space-5);}
+.breadcrumb a{color:var(--primary-600);text-decoration:none;}
+.breadcrumb a:hover{text-decoration:underline;}
+.breadcrumb-sep{color:var(--gray-300);}
+
+/* Page header */
+.page-header{margin-bottom:var(--space-6);}
+.page-header__content{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-1);}
+.page-header__left{}
+.page-header__title{font-size:var(--font-size-2xl);font-weight:var(--font-weight-bold);color:var(--gray-900);margin-bottom:var(--space-2);}
+.page-header__employee{
+  display:flex;align-items:center;gap:var(--space-3);
+  background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);
+  padding:var(--space-3) var(--space-4);width:fit-content;
+}
+.emp-avatar-small{
+  width:36px;height:36px;background:linear-gradient(135deg,var(--primary-500),var(--primary-700));
+  border-radius:var(--radius-full);display:flex;align-items:center;justify-content:center;
+  color:white;font-size:var(--font-size-xs);font-weight:var(--font-weight-bold);flex-shrink:0;
+}
+.emp-info-small{}
+.emp-name-small{font-size:var(--font-size-sm);font-weight:var(--font-weight-semibold);color:var(--gray-800);}
+.emp-meta-small{font-size:var(--font-size-xs);color:var(--gray-500);}
+.page-header__actions{display:flex;align-items:center;gap:var(--space-3);margin-top:var(--space-2);}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:var(--radius-full);
+  font-size:var(--font-size-xs);font-weight:var(--font-weight-semibold);}
+.badge-active{background:#dcfce7;color:#166534;}
+.badge-expired{background:var(--gray-100);color:var(--gray-600);}
+.badge-blue{background:var(--primary-100);color:var(--primary-700);}
+
+/* Contract cards */
+.contracts-list{display:flex;flex-direction:column;gap:var(--space-5);}
+.contract-card{
+  background:var(--white);border-radius:var(--radius-lg);
+  border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);
+  overflow:hidden;transition:all var(--transition-normal);
+}
+.contract-card:hover{box-shadow:var(--shadow-md);}
+.contract-card--active{border-left:4px solid var(--success-500);}
+.contract-card--expired{border-left:4px solid var(--gray-300);opacity:0.75;}
+
+.contract-card-header{
+  padding:var(--space-5) var(--space-6);border-bottom:1px solid var(--gray-100);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.contract-card-title{display:flex;align-items:center;gap:var(--space-3);}
+.contract-icon{
+  width:40px;height:40px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+}
+.contract-icon--active{background:#dcfce7;}
+.contract-icon--expired{background:var(--gray-100);}
+.contract-icon svg{width:20px;height:20px;fill:none;stroke-width:2;}
+.contract-icon--active svg{stroke:#166534;}
+.contract-icon--expired svg{stroke:var(--gray-500);}
+.contract-num{font-size:var(--font-size-lg);font-weight:var(--font-weight-bold);color:var(--gray-900);}
+.contract-badges{display:flex;gap:var(--space-2);margin-top:var(--space-1);}
+.contract-actions{display:flex;align-items:center;gap:var(--space-2);}
+
+.contract-card-body{padding:var(--space-5) var(--space-6);}
+.contract-dates{
+  display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);
+  padding:var(--space-3) var(--space-4);background:var(--gray-50);border-radius:var(--radius-md);
+}
+.contract-date-item{display:flex;align-items:center;gap:var(--space-2);}
+.contract-date-item svg{width:14px;height:14px;stroke:var(--gray-500);fill:none;stroke-width:2;}
+.contract-date-label{font-size:var(--font-size-xs);color:var(--gray-500);}
+.contract-date-val{font-size:var(--font-size-sm);font-weight:var(--font-weight-semibold);color:var(--gray-800);}
+.contract-date-arrow{color:var(--gray-300);font-size:18px;margin:0 var(--space-1);}
+
+/* Salary grid */
+.salary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);}
+.salary-item{
+  background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);
+  padding:var(--space-4);
+}
+.salary-label{font-size:var(--font-size-xs);color:var(--gray-500);margin-bottom:var(--space-1);}
+.salary-value{font-size:var(--font-size-lg);font-weight:var(--font-weight-bold);color:var(--gray-900);}
+.salary-value--green{color:var(--success-500);}
+
+/* Empty state */
+.empty-state{
+  text-align:center;padding:var(--space-12);color:var(--gray-400);
+}
+.empty-state svg{width:48px;height:48px;stroke:var(--gray-300);fill:none;stroke-width:1.5;margin-bottom:var(--space-4);}
+.empty-state p{font-size:var(--font-size-sm);}
+
+/* Summary strip */
+.summary-strip{
+  display:flex;gap:var(--space-5);margin-bottom:var(--space-6);
+}
+.summary-item{
+  flex:1;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);
+  padding:var(--space-4) var(--space-5);display:flex;align-items:center;gap:var(--space-3);
+}
+.summary-icon{
+  width:40px;height:40px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.summary-icon svg{width:20px;height:20px;fill:none;stroke-width:2;}
+.summary-val{font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--gray-900);}
+.summary-lbl{font-size:var(--font-size-xs);color:var(--gray-500);}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="navbar-logo">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <span class="navbar-title">UTC HRM</span>
+  </div>
+  <div class="navbar-right">
+    <div class="navbar-user">
+      <div class="user-avatar-nb">NL</div>
+      <div class="user-info">
+        <div class="user-name">Nguyễn Thị Lan</div>
+        <div class="user-role">HR Manager</div>
+      </div>
+    </div>
+    <button class="btn-logout">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Đăng xuất
+    </button>
+  </div>
+</nav>
+
+<!-- Sidebar (HR view) -->
+<aside class="sidebar">
+  <div class="sidebar-section">Tổ chức</div>
+  <a class="sidebar-nav-item" href="02-dashboard-hrm.html">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Dashboard
+  </a>
+  <a class="sidebar-nav-item" href="#">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Phòng ban
+  </a>
+  <div class="sidebar-section">Nhân sự</div>
+  <a class="sidebar-nav-item" href="03-employee-list.html">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Nhân viên
+  </a>
+  <a class="sidebar-nav-item active" href="#">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/></svg>
+    Hợp đồng
+  </a>
+  <div class="sidebar-section">Phụ cấp</div>
+  <a class="sidebar-nav-item" href="#">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/>
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    Loại phụ cấp
+  </a>
+</aside>
+
+<!-- Main -->
+<main class="main-content">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="02-dashboard-hrm.html">Dashboard</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="03-employee-list.html">Nhân viên</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="05-employee-profile.html">Nguyễn Văn An</a>
+    <span class="breadcrumb-sep">/</span>
+    <span>Hợp đồng lao động</span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header__content">
+      <div class="page-header__left">
+        <h1 class="page-header__title">Hợp đồng lao động</h1>
+        <div class="page-header__employee">
+          <div class="emp-avatar-small">VA</div>
+          <div class="emp-info-small">
+            <div class="emp-name-small">Nguyễn Văn An</div>
+            <div class="emp-meta-small">NV-001 &nbsp;·&nbsp; Công nghệ thông tin &nbsp;·&nbsp; Lập trình viên</div>
+          </div>
+        </div>
+      </div>
+      <div class="page-header__actions">
+        <a href="03-employee-list.html" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Quay lại
+        </a>
+        <button class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ký HĐ mới
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-strip">
+    <div class="summary-item">
+      <div class="summary-icon" style="background:var(--primary-50);">
+        <svg viewBox="0 0 24 24" stroke="var(--primary-600)">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div><div class="summary-val">3</div><div class="summary-lbl">Tổng số hợp đồng</div></div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-icon" style="background:#dcfce7;">
+        <svg viewBox="0 0 24 24" stroke="#166534">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div><div class="summary-val" style="color:var(--success-500);">1</div><div class="summary-lbl">Đang hiệu lực</div></div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-icon" style="background:var(--gray-100);">
+        <svg viewBox="0 0 24 24" stroke="var(--gray-500)">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div><div class="summary-val">2</div><div class="summary-lbl">Đã hết hạn</div></div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-icon" style="background:var(--warning-50);">
+        <svg viewBox="0 0 24 24" stroke="var(--warning-600)">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div><div class="summary-val" style="color:var(--warning-600);">18.5M</div><div class="summary-lbl">Lương cơ bản hiện tại</div></div>
+    </div>
+  </div>
+
+  <!-- Contract Cards -->
+  <div class="contracts-list">
+
+    <!-- Active Contract -->
+    <div class="contract-card contract-card--active">
+      <div class="contract-card-header">
+        <div class="contract-card-title">
+          <div class="contract-icon contract-icon--active">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div>
+            <div class="contract-num">HĐ-2024-001</div>
+            <div class="contract-badges">
+              <span class="badge badge-active">Đang hiệu lực</span>
+              <span class="badge badge-blue">Toàn thời gian</span>
+            </div>
+          </div>
+        </div>
+        <div class="contract-actions">
+          <button class="btn btn-sm btn-warning">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Chỉnh sửa
+          </button>
+          <button class="btn btn-sm btn-error">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Chấm dứt HĐ
+          </button>
+        </div>
+      </div>
+
+      <div class="contract-card-body">
+        <div class="contract-dates">
+          <div class="contract-date-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div class="contract-date-label">Ngày bắt đầu</div>
+              <div class="contract-date-val">15/01/2024</div>
+            </div>
+          </div>
+          <span class="contract-date-arrow">→</span>
+          <div class="contract-date-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div class="contract-date-label">Ngày kết thúc</div>
+              <div class="contract-date-val">14/01/2026</div>
+            </div>
+          </div>
+          <span style="margin-left:auto;font-size:var(--font-size-xs);color:var(--success-500);font-weight:600;">
+            Còn 261 ngày
+          </span>
+        </div>
+
+        <div class="salary-grid">
+          <div class="salary-item">
+            <div class="salary-label">Lương cơ bản</div>
+            <div class="salary-value salary-value--green">18.500.000 ₫</div>
+          </div>
+          <div class="salary-item">
+            <div class="salary-label">Phụ cấp</div>
+            <div class="salary-value">2.500.000 ₫</div>
+          </div>
+          <div class="salary-item">
+            <div class="salary-label">Tổng thu nhập</div>
+            <div class="salary-value salary-value--green">21.000.000 ₫</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expired Contract 1 -->
+    <div class="contract-card contract-card--expired">
+      <div class="contract-card-header">
+        <div class="contract-card-title">
+          <div class="contract-icon contract-icon--expired">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div>
+            <div class="contract-num" style="color:var(--gray-600);">HĐ-2022-003</div>
+            <div class="contract-badges">
+              <span class="badge badge-expired">Đã hết hạn</span>
+              <span class="badge" style="background:var(--gray-100);color:var(--gray-500);">Toàn thời gian</span>
+            </div>
+          </div>
+        </div>
+        <div class="contract-actions">
+          <button class="btn btn-sm btn-ghost" style="opacity:0.7;">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/></svg>
+            Xem chi tiết
+          </button>
+        </div>
+      </div>
+
+      <div class="contract-card-body">
+        <div class="contract-dates">
+          <div class="contract-date-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div class="contract-date-label">Ngày bắt đầu</div>
+              <div class="contract-date-val">15/01/2022</div>
+            </div>
+          </div>
+          <span class="contract-date-arrow">→</span>
+          <div class="contract-date-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div class="contract-date-label">Ngày kết thúc</div>
+              <div class="contract-date-val">14/01/2024</div>
+            </div>
+          </div>
+          <span style="margin-left:auto;font-size:var(--font-size-xs);color:var(--gray-400);font-weight:600;">
+            Đã hết hạn
+          </span>
+        </div>
+
+        <div class="salary-grid">
+          <div class="salary-item" style="opacity:0.75;">
+            <div class="salary-label">Lương cơ bản</div>
+            <div class="salary-value" style="color:var(--gray-600);">14.000.000 ₫</div>
+          </div>
+          <div class="salary-item" style="opacity:0.75;">
+            <div class="salary-label">Phụ cấp</div>
+            <div class="salary-value" style="color:var(--gray-600);">1.500.000 ₫</div>
+          </div>
+          <div class="salary-item" style="opacity:0.75;">
+            <div class="salary-label">Tổng thu nhập</div>
+            <div class="salary-value" style="color:var(--gray-600);">15.500.000 ₫</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expired Contract 2 -->
+    <div class="contract-card contract-card--expired">
+      <div class="contract-card-header">
+        <div class="contract-card-title">
+          <div class="contract-icon contract-icon--expired">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div>
+            <div class="contract-num" style="color:var(--gray-600);">HĐ-2020-007</div>
+            <div class="contract-badges">
+              <span class="badge badge-expired">Đã hết hạn</span>
+              <span class="badge" style="background:var(--gray-100);color:var(--gray-500);">Thử việc</span>
+            </div>
+          </div>
+        </div>
+        <div class="contract-actions">
+          <button class="btn btn-sm btn-ghost" style="opacity:0.7;">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/></svg>
+            Xem chi tiết
+          </button>
+        </div>
+      </div>
+
+      <div class="contract-card-body">
+        <div class="contract-dates">
+          <div class="contract-date-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div class="contract-date-label">Ngày bắt đầu</div>
+              <div class="contract-date-val">01/11/2020</div>
+            </div>
+          </div>
+          <span class="contract-date-arrow">→</span>
+          <div class="contract-date-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div class="contract-date-label">Ngày kết thúc</div>
+              <div class="contract-date-val">31/12/2021</div>
+            </div>
+          </div>
+          <span style="margin-left:auto;font-size:var(--font-size-xs);color:var(--gray-400);font-weight:600;">
+            Đã hết hạn
+          </span>
+        </div>
+
+        <div class="salary-grid">
+          <div class="salary-item" style="opacity:0.75;">
+            <div class="salary-label">Lương cơ bản</div>
+            <div class="salary-value" style="color:var(--gray-600);">8.000.000 ₫</div>
+          </div>
+          <div class="salary-item" style="opacity:0.75;">
+            <div class="salary-label">Phụ cấp</div>
+            <div class="salary-value" style="color:var(--gray-600);">500.000 ₫</div>
+          </div>
+          <div class="salary-item" style="opacity:0.75;">
+            <div class="salary-label">Tổng thu nhập</div>
+            <div class="salary-value" style="color:var(--gray-600);">8.500.000 ₫</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

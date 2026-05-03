@@ -4,6 +4,7 @@ using EmployeeManagement.Models.Enums;
 
 namespace EmployeeManagement.Models.Entities;
 
+// Bảng người phụ thuộc — dùng để khai giảm thuế TNCN
 [Table("employee_dependent")]
 public class EmployeeDependent
 {
@@ -23,6 +24,7 @@ public class EmployeeDependent
     [Column("dob")]
     public DateOnly? DateOfBirth { get; set; }
 
+    // Mối quan hệ: SPOUSE (vợ/chồng) | CHILD (con) | PARENT (bố/mẹ)
     [MaxLength(20)]
     [Column("relationship")]
     public string? Relationship { get; set; }

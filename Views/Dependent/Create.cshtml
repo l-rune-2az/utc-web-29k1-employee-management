@@ -1,0 +1,91 @@
+@model DependentFormViewModel
+@{
+    ViewData["Title"] = "Thêm người phụ thuộc";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Thêm người phụ thuộc</h4>
+        <p class="text-muted mb-0" style="font-size:14px">Khai báo người phụ thuộc cho nhân viên</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Quay lại
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-4">
+                        <label asp-for="EmpId" class="form-label">Nhân viên</label>
+                        <select asp-for="EmpId" asp-items="Model.EmployeeOptions" class="form-select"></select>
+                        <span asp-validation-for="EmpId" class="text-danger" style="font-size:12px"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="FullName" class="form-label">Họ và tên</label>
+                        <input asp-for="FullName" class="form-control" placeholder="Họ và tên người phụ thuộc" />
+                        <span asp-validation-for="FullName" class="text-danger" style="font-size:12px"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Relationship" class="form-label">Mối quan hệ</label>
+                        <select asp-for="Relationship" asp-items="Model.RelationshipOptions" class="form-select"></select>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label">Ngày sinh</label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NationalId" class="form-label">Số CMND/CCCD</label>
+                            <input asp-for="NationalId" class="form-control" placeholder="Nếu có" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 pt-2 border-top">
+                        <button type="submit" class="btn btn-primary px-4">Lưu</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm guide-card">
+            <div class="card-header">
+                <span class="fw-semibold" style="color:#334155">Lưu ý</span>
+            </div>
+            <div class="card-body">
+                <div class="guide-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Người phụ thuộc được khai để <strong>miễn giảm thuế TNCN</strong> theo quy định pháp luật.
+                </div>
+                <div class="guide-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Một nhân viên có thể khai nhiều người phụ thuộc khác nhau.
+                </div>
+                <div class="guide-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Số CMND/CCCD nên điền nếu có để hỗ trợ xác minh hồ sơ thuế.
+                </div>
+                <div class="guide-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Quan hệ: <strong>Vợ/Chồng</strong>, <strong>Con</strong>, <strong>Bố/Mẹ</strong>.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

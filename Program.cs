@@ -25,9 +25,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IContractRepository, ContractRepository>();
+builder.Services.AddScoped<IDependentRepository, DependentRepository>();
+builder.Services.AddScoped<IEmployeeAllowanceRepository, EmployeeAllowanceRepository>();
+
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<IDependentService, DependentService>();
+builder.Services.AddScoped<IEmployeeAllowanceService, EmployeeAllowanceService>();
 
 var app = builder.Build();
 
@@ -59,6 +66,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 app.MapStaticAssets();
 
 app.MapControllerRoute(

@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS employee_allowance;
+DROP TABLE IF EXISTS employee_dependent;
+DROP TABLE IF EXISTS contract;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS employee;
+DROP TABLE IF EXISTS allowance_config;
+DROP TABLE IF EXISTS position;
+DROP TABLE IF EXISTS department;
+DROP SEQUENCE IF EXISTS seq_contract_number;
+DROP SEQUENCE IF EXISTS seq_employee_code;

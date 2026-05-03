@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRM System Design Document</title>
+<style>
+:root {
+  --primary-50: #eff6ff; --primary-100: #dbeafe; --primary-500: #3b82f6;
+  --primary-600: #2563eb; --primary-700: #1d4ed8;
+  --secondary-50: #f8fafc; --secondary-100: #f1f5f9;
+  --secondary-500: #94a3b8; --secondary-600: #64748b; --secondary-700: #475569;
+  --success-500: #10b981;
+  --warning-50: #fffbeb; --warning-500: #f59e0b; --warning-600: #d97706;
+  --error-50: #fef2f2; --error-500: #dc2626; --error-600: #dc2626;
+  --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1; --gray-400: #94a3b8; --gray-500: #64748b;
+  --gray-600: #475569; --gray-700: #334155; --gray-800: #1e293b; --gray-900: #0f172a;
+  --white: #ffffff;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-size-xs: 12px; --font-size-sm: 14px; --font-size-base: 16px;
+  --font-size-lg: 18px; --font-size-xl: 20px; --font-size-2xl: 24px; --font-size-3xl: 32px;
+  --font-weight-normal: 400; --font-weight-medium: 500;
+  --font-weight-semibold: 600; --font-weight-bold: 700;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+  --space-12: 48px; --space-16: 64px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px; --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.15); --shadow-xl: 0 20px 40px rgba(0,0,0,0.15);
+  --transition-fast: 0.15s ease; --transition-normal: 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font-family);font-size:var(--font-size-base);line-height:1.6;color:var(--gray-800);background:var(--gray-50);}
+h1,h2,h3,h4,h5,h6{font-weight:var(--font-weight-bold);line-height:1.2;margin-bottom:var(--space-3);}
+p{color:var(--gray-600);margin-bottom:var(--space-3);}
+a{color:var(--primary-600);text-decoration:none;}
+
+/* Topbar */
+.topbar{background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--gray-200);
+  box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:100;padding:var(--space-4) var(--space-8);}
+.topbar-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;}
+.topbar-brand{font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);
+  background:linear-gradient(135deg,var(--primary-500),var(--primary-700));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-meta{font-size:var(--font-size-sm);color:var(--gray-500);}
+
+/* Layout */
+.page-wrap{max-width:1200px;margin:0 auto;padding:var(--space-8) var(--space-6);}
+.toc-nav{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  padding:var(--space-6);margin-bottom:var(--space-8);box-shadow:var(--shadow-sm);}
+.toc-nav h3{font-size:var(--font-size-lg);color:var(--gray-800);margin-bottom:var(--space-4);
+  border-bottom:2px solid var(--primary-500);padding-bottom:var(--space-2);}
+.toc-list{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-2);}
+.toc-list li a{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);
+  border-radius:var(--radius-md);color:var(--primary-600);font-size:var(--font-size-sm);
+  font-weight:var(--font-weight-medium);transition:all var(--transition-fast);}
+.toc-list li a:hover{background:var(--primary-50);}
+.toc-num{width:22px;height:22px;background:var(--primary-600);color:var(--white);
+  border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center;
+  font-size:var(--font-size-xs);font-weight:var(--font-weight-bold);flex-shrink:0;}
+
+/* Section */
+.section{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  padding:var(--space-8);margin-bottom:var(--space-8);box-shadow:var(--shadow-sm);}
+.section-title{font-size:var(--font-size-2xl);font-weight:var(--font-weight-bold);color:var(--gray-900);
+  border-left:4px solid var(--primary-600);padding-left:var(--space-4);margin-bottom:var(--space-6);}
+.section-sub{font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);
+  color:var(--gray-700);margin:var(--space-6) 0 var(--space-3);}
+
+/* Tables */
+.spec-table{width:100%;border-collapse:collapse;font-size:var(--font-size-sm);margin-bottom:var(--space-4);}
+.spec-table th{background:var(--primary-600);color:var(--white);padding:var(--space-3) var(--space-4);
+  text-align:left;font-weight:var(--font-weight-semibold);}
+.spec-table td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--gray-100);vertical-align:top;}
+.spec-table tr:hover td{background:var(--gray-50);}
+.spec-table tr:last-child td{border-bottom:none;}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:var(--radius-full);
+  font-size:var(--font-size-xs);font-weight:var(--font-weight-semibold);}
+.badge-blue{background:var(--primary-100);color:var(--primary-700);}
+.badge-green{background:#dcfce7;color:#166534;}
+.badge-gray{background:var(--gray-100);color:var(--gray-600);}
+.badge-yellow{background:var(--warning-50);color:var(--warning-600);}
+
+/* Color swatches */
+.color-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:var(--space-4);margin-bottom:var(--space-4);}
+.color-card{border:1px solid var(--gray-200);border-radius:var(--radius-md);overflow:hidden;}
+.color-swatch{height:56px;}
+.color-info{padding:var(--space-2) var(--space-3);}
+.color-name{font-size:var(--font-size-xs);font-weight:var(--font-weight-semibold);color:var(--gray-700);}
+.color-hex{font-size:var(--font-size-xs);color:var(--gray-500);font-family:monospace;}
+
+/* Typography scale */
+.type-grid{display:flex;flex-direction:column;gap:var(--space-3);}
+.type-row{display:flex;align-items:baseline;gap:var(--space-4);padding:var(--space-3);
+  border:1px solid var(--gray-200);border-radius:var(--radius-md);}
+.type-label{width:80px;flex-shrink:0;font-size:var(--font-size-xs);color:var(--gray-500);font-family:monospace;}
+.type-sample{color:var(--gray-800);}
+
+/* Sitemap */
+.sitemap{display:flex;flex-direction:column;gap:var(--space-4);}
+.role-block{border:1px solid var(--gray-200);border-radius:var(--radius-md);overflow:hidden;}
+.role-header{background:var(--primary-600);color:var(--white);padding:var(--space-3) var(--space-5);
+  font-weight:var(--font-weight-semibold);font-size:var(--font-size-sm);}
+.role-screens{display:flex;flex-wrap:wrap;gap:var(--space-3);padding:var(--space-4) var(--space-5);background:var(--gray-50);}
+.screen-node{background:var(--white);border:1px solid var(--primary-200, #bfdbfe);border-radius:var(--radius-md);
+  padding:var(--space-2) var(--space-4);font-size:var(--font-size-sm);color:var(--primary-700);
+  box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:var(--space-2);}
+.screen-node-arrow{color:var(--gray-400);font-size:18px;line-height:1;}
+
+/* Mini Mockups */
+.mockup-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-6);}
+.mockup-card{border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;}
+.mockup-label{background:var(--gray-800);color:var(--white);padding:var(--space-2) var(--space-4);
+  font-size:var(--font-size-xs);font-weight:var(--font-weight-semibold);letter-spacing:0.05em;}
+.mockup-frame{padding:var(--space-4);background:var(--gray-50);min-height:220px;}
+
+/* Mini mockup internals */
+.mm-login{display:flex;height:200px;border-radius:var(--radius-md);overflow:hidden;}
+.mm-left{background:linear-gradient(135deg,#2563eb,#1d4ed8);width:45%;padding:var(--space-4);color:white;}
+.mm-right{background:var(--gray-50);flex:1;padding:var(--space-4);display:flex;flex-direction:column;gap:6px;}
+.mm-logo{font-size:10px;font-weight:700;margin-bottom:var(--space-2);}
+.mm-feature{font-size:9px;opacity:0.85;margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.mm-card-mini{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:var(--space-3);flex:1;}
+.mm-input{height:18px;background:var(--white);border:1px solid var(--gray-300);border-radius:3px;margin-bottom:4px;width:100%;}
+.mm-btn{height:18px;background:var(--primary-600);border-radius:3px;width:100%;}
+.mm-label{font-size:9px;color:var(--gray-600);margin-bottom:2px;}
+
+.mm-app{display:flex;height:200px;border-radius:var(--radius-md);overflow:hidden;}
+.mm-sidebar{width:52px;background:var(--white);border-right:1px solid var(--gray-200);padding:6px 4px;}
+.mm-sidebar-logo{height:14px;background:var(--primary-600);border-radius:3px;margin-bottom:6px;}
+.mm-sidebar-item{height:10px;border-radius:3px;margin-bottom:3px;background:var(--gray-100);}
+.mm-sidebar-item.active{background:var(--primary-50);}
+.mm-body{flex:1;display:flex;flex-direction:column;}
+.mm-topbar{height:24px;background:rgba(255,255,255,0.95);border-bottom:1px solid var(--gray-200);
+  display:flex;align-items:center;padding:0 8px;gap:6px;}
+.mm-topbar-dot{width:6px;height:6px;border-radius:50%;background:var(--primary-600);}
+.mm-topbar-title{font-size:8px;font-weight:700;color:var(--gray-700);}
+.mm-main{flex:1;padding:8px;background:var(--gray-50);overflow:hidden;}
+.mm-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;}
+.mm-stat{background:var(--white);border:1px solid var(--gray-200);border-radius:3px;padding:4px;height:28px;}
+.mm-table{background:var(--white);border:1px solid var(--gray-200);border-radius:3px;}
+.mm-thead{background:var(--primary-600);height:14px;border-radius:3px 3px 0 0;}
+.mm-trow{height:12px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;padding:0 4px;gap:4px;}
+.mm-tcell{flex:1;background:var(--gray-100);height:6px;border-radius:2px;}
+
+/* Spacing guide */
+.space-guide{display:flex;flex-wrap:wrap;gap:var(--space-4);}
+.space-item{display:flex;flex-direction:column;align-items:center;gap:var(--space-1);}
+.space-bar{background:var(--primary-500);height:24px;border-radius:2px;}
+.space-label{font-size:var(--font-size-xs);color:var(--gray-500);font-family:monospace;}
+
+/* Sidebar spec */
+.sidebar-spec{display:flex;gap:var(--space-6);align-items:flex-start;}
+.sidebar-preview{width:200px;flex-shrink:0;background:var(--white);border:1px solid var(--gray-200);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md);}
+.sp-header{background:var(--white);border-bottom:1px solid var(--gray-200);padding:var(--space-4);
+  display:flex;align-items:center;gap:var(--space-3);}
+.sp-logo{width:28px;height:28px;background:var(--primary-600);border-radius:var(--radius-md);}
+.sp-brand{font-size:var(--font-size-sm);font-weight:var(--font-weight-bold);color:var(--gray-800);}
+.sp-section{padding:var(--space-2) var(--space-3) var(--space-1);
+  font-size:10px;font-weight:var(--font-weight-semibold);color:var(--gray-400);text-transform:uppercase;letter-spacing:0.08em;}
+.sp-item{padding:var(--space-2) var(--space-3);display:flex;align-items:center;gap:var(--space-2);
+  font-size:var(--font-size-xs);color:var(--gray-600);border-radius:var(--radius-md);margin:1px var(--space-2);}
+.sp-item.active{background:var(--primary-50);color:var(--primary-600);font-weight:var(--font-weight-semibold);}
+.sp-item:hover:not(.active){background:var(--gray-50);}
+.sp-icon{width:14px;height:14px;background:currentColor;border-radius:2px;opacity:0.5;}
+.sidebar-rules{flex:1;}
+.rule-block{margin-bottom:var(--space-4);}
+.rule-title{font-size:var(--font-size-sm);font-weight:var(--font-weight-semibold);color:var(--gray-700);
+  margin-bottom:var(--space-2);}
+.code-block{background:var(--gray-900);color:#e2e8f0;border-radius:var(--radius-md);
+  padding:var(--space-4);font-family:'Courier New',monospace;font-size:var(--font-size-xs);
+  line-height:1.7;overflow-x:auto;}
+.code-comment{color:#94a3b8;}
+.code-prop{color:#7dd3fc;}
+.code-val{color:#86efac;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="topbar-brand">HRM System — Tài Liệu Thiết Kế</span>
+    <span class="topbar-meta">Phiên bản 1.0 &nbsp;·&nbsp; Cập nhật: 28/04/2026 &nbsp;·&nbsp; UTC29K1</span>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <!-- TOC -->
+  <div class="toc-nav">
+    <h3>Mục lục</h3>
+    <ul class="toc-list">
+      <li><a href="#s1"><span class="toc-num">1</span> Tổng quan hệ thống</a></li>
+      <li><a href="#s2"><span class="toc-num">2</span> Nguyên tắc thiết kế</a></li>
+      <li><a href="#s3"><span class="toc-num">3</span> Danh sách màn hình</a></li>
+      <li><a href="#s4"><span class="toc-num">4</span> Mapping component</a></li>
+      <li><a href="#s5"><span class="toc-num">5</span> Điều hướng & luồng</a></li>
+      <li><a href="#s6"><span class="toc-num">6</span> Xem trước màn hình</a></li>
+      <li><a href="#s7"><span class="toc-num">7</span> Thiết kế Sidebar</a></li>
+    </ul>
+  </div>
+
+  <!-- 1. Tổng quan -->
+  <div class="section" id="s1">
+    <h2 class="section-title">1. Tổng quan hệ thống</h2>
+    <p>Hệ thống Quản lý Nhân sự (HRM) là ứng dụng web nội bộ hỗ trợ doanh nghiệp quản lý toàn bộ vòng đời nhân viên — từ tuyển dụng, hợp đồng, phụ cấp đến người phụ thuộc. Giao diện được xây dựng trên nền Design System thống nhất, đảm bảo tính nhất quán và khả năng mở rộng.</p>
+
+    <h3 class="section-sub">Các module chính</h3>
+    <table class="spec-table">
+      <thead><tr><th>Module</th><th>Mô tả</th><th>Số màn hình</th></tr></thead>
+      <tbody>
+        <tr><td>Xác thực</td><td>Đăng nhập hệ thống, quản lý phiên làm việc</td><td>1</td></tr>
+        <tr><td>Tổng quan</td><td>Dashboard tóm tắt chỉ số nhân sự cho HR Manager</td><td>1</td></tr>
+        <tr><td>Quản lý nhân viên</td><td>CRUD nhân viên — danh sách, thêm mới, chỉnh sửa</td><td>2</td></tr>
+        <tr><td>Hồ sơ nhân viên</td><td>Nhân viên xem & cập nhật thông tin cá nhân</td><td>1</td></tr>
+        <tr><td>Hợp đồng</td><td>Quản lý lịch sử hợp đồng lao động</td><td>1</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="section-sub">Phân quyền người dùng</h3>
+    <table class="spec-table">
+      <thead><tr><th>Vai trò</th><th>Mô tả</th><th>Quyền truy cập</th><th>Màn hình</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-blue">HR_MANAGER</span></td>
+          <td>Quản lý nhân sự, phòng nhân sự</td>
+          <td>Toàn quyền đọc/ghi nhân viên, hợp đồng, phụ cấp</td>
+          <td>01, 02, 03, 04, 06</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">EMPLOYEE</span></td>
+          <td>Nhân viên thông thường trong công ty</td>
+          <td>Xem hồ sơ, cập nhật liên lạc, xem hợp đồng của bản thân</td>
+          <td>01, 05, 06 (chỉ đọc)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2. Nguyên tắc thiết kế -->
+  <div class="section" id="s2">
+    <h2 class="section-title">2. Nguyên tắc thiết kế</h2>
+
+    <h3 class="section-sub">Bảng màu hệ thống</h3>
+    <div class="color-grid">
+      <div class="color-card">
+        <div class="color-swatch" style="background:linear-gradient(135deg,#3b82f6,#2563eb);"></div>
+        <div class="color-info"><div class="color-name">Primary</div><div class="color-hex">#3b82f6 → #2563eb</div></div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#eff6ff;border-bottom:1px solid #dbeafe;"></div>
+        <div class="color-info"><div class="color-name">Primary-50</div><div class="color-hex">#eff6ff (hover bg)</div></div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#10b981;"></div>
+        <div class="color-info"><div class="color-name">Success</div><div class="color-hex">#10b981</div></div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#f59e0b;"></div>
+        <div class="color-info"><div class="color-name">Warning</div><div class="color-hex">#f59e0b</div></div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#dc2626;"></div>
+        <div class="color-info"><div class="color-name">Error</div><div class="color-hex">#dc2626</div></div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:linear-gradient(180deg,#f8fafc 0%,#e2e8f0 100%);"></div>
+        <div class="color-info"><div class="color-name">Gray Scale</div><div class="color-hex">#f8fafc → #0f172a</div></div>
+      </div>
+    </div>
+
+    <h3 class="section-sub">Thang đo typography</h3>
+    <div class="type-grid">
+      <div class="type-row"><span class="type-label">3xl / 32px</span><span class="type-sample" style="font-size:32px;font-weight:700;">Tiêu đề trang</span></div>
+      <div class="type-row"><span class="type-label">2xl / 24px</span><span class="type-sample" style="font-size:24px;font-weight:700;">Tiêu đề section</span></div>
+      <div class="type-row"><span class="type-label">xl / 20px</span><span class="type-sample" style="font-size:20px;font-weight:600;">Tên nhân viên / Card title</span></div>
+      <div class="type-row"><span class="type-label">lg / 18px</span><span class="type-sample" style="font-size:18px;font-weight:600;">Sub-heading</span></div>
+      <div class="type-row"><span class="type-label">base / 16px</span><span class="type-sample" style="font-size:16px;">Nội dung chính, label form</span></div>
+      <div class="type-row"><span class="type-label">sm / 14px</span><span class="type-sample" style="font-size:14px;color:#475569;">Dữ liệu bảng, ghi chú</span></div>
+      <div class="type-row"><span class="type-label">xs / 12px</span><span class="type-sample" style="font-size:12px;color:#64748b;">Badge, metadata, lỗi form</span></div>
+    </div>
+
+    <h3 class="section-sub">Hướng dẫn spacing</h3>
+    <div class="space-guide">
+      <div class="space-item"><div class="space-bar" style="width:4px;"></div><span class="space-label">4px (--space-1)</span></div>
+      <div class="space-item"><div class="space-bar" style="width:8px;"></div><span class="space-label">8px (--space-2)</span></div>
+      <div class="space-item"><div class="space-bar" style="width:12px;"></div><span class="space-label">12px (--space-3)</span></div>
+      <div class="space-item"><div class="space-bar" style="width:16px;"></div><span class="space-label">16px (--space-4)</span></div>
+      <div class="space-item"><div class="space-bar" style="width:20px;"></div><span class="space-label">20px (--space-5)</span></div>
+      <div class="space-item"><div class="space-bar" style="width:24px;"></div><span class="space-label">24px (--space-6)</span></div>
+      <div class="space-item"><div class="space-bar" style="width:32px;"></div><span class="space-label">32px (--space-8)</span></div>
+      <div class="space-item"><div class="space-bar" style="width:48px;"></div><span class="space-label">48px (--space-12)</span></div>
+      <div class="space-item"><div class="space-bar" style="width:64px;"></div><span class="space-label">64px (--space-16)</span></div>
+    </div>
+
+    <h3 class="section-sub">Nguyên tắc chung</h3>
+    <table class="spec-table">
+      <thead><tr><th>Nguyên tắc</th><th>Áp dụng</th></tr></thead>
+      <tbody>
+        <tr><td>Light & Clean</td><td>Nền trắng/xám nhạt, không dùng dark theme hay glassmorphism</td></tr>
+        <tr><td>Blue-first</td><td>Primary action luôn dùng gradient xanh #2563eb → #1d4ed8</td></tr>
+        <tr><td>Consistent spacing</td><td>Dùng biến --space-* tuyệt đối, không hardcode px lẻ</td></tr>
+        <tr><td>Accessible contrast</td><td>Text trên nền màu đảm bảo tỷ lệ tương phản WCAG AA</td></tr>
+        <tr><td>Hover feedback</td><td>Mọi interactive element có transition hover rõ ràng</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. Danh sách màn hình -->
+  <div class="section" id="s3">
+    <h2 class="section-title">3. Danh sách màn hình</h2>
+    <table class="spec-table">
+      <thead><tr><th>Mã</th><th>Tên màn hình</th><th>Mục đích</th><th>Vai trò</th><th>URL gợi ý</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-gray">01</span></td>
+          <td><strong>Đăng nhập</strong></td>
+          <td>Xác thực người dùng, điều hướng theo role</td>
+          <td>Tất cả</td>
+          <td><code>/login</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">02</span></td>
+          <td><strong>Dashboard HR</strong></td>
+          <td>Tổng quan KPI nhân sự, truy cập nhanh</td>
+          <td>HR_MANAGER</td>
+          <td><code>/dashboard</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">03</span></td>
+          <td><strong>Danh sách nhân viên</strong></td>
+          <td>Tìm kiếm, lọc, xem danh sách nhân viên</td>
+          <td>HR_MANAGER</td>
+          <td><code>/employees</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">04</span></td>
+          <td><strong>Form nhân viên</strong></td>
+          <td>Thêm mới hoặc chỉnh sửa thông tin nhân viên</td>
+          <td>HR_MANAGER</td>
+          <td><code>/employees/new</code> · <code>/employees/:id/edit</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">05</span></td>
+          <td><strong>Hồ sơ cá nhân</strong></td>
+          <td>Nhân viên xem hồ sơ & cập nhật thông tin liên lạc</td>
+          <td>EMPLOYEE</td>
+          <td><code>/profile</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-yellow">06</span></td>
+          <td><strong>Danh sách hợp đồng</strong></td>
+          <td>Xem lịch sử hợp đồng lao động của nhân viên</td>
+          <td>Cả hai (phân quyền)</td>
+          <td><code>/employees/:id/contracts</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. Component Mapping -->
+  <div class="section" id="s4">
+    <h2 class="section-title">4. Mapping component theo màn hình</h2>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th style="text-align:center;">01<br>Login</th>
+          <th style="text-align:center;">02<br>Dashboard</th>
+          <th style="text-align:center;">03<br>EmpList</th>
+          <th style="text-align:center;">04<br>EmpForm</th>
+          <th style="text-align:center;">05<br>Profile</th>
+          <th style="text-align:center;">06<br>Contracts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>.navbar</code> — Thanh điều hướng trên</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+        </tr>
+        <tr>
+          <td>Sidebar trắng (custom)</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+        </tr>
+        <tr>
+          <td><code>.card</code> / <code>.card-header</code> / <code>.card-body</code> / <code>.card-footer</code></td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+        </tr>
+        <tr>
+          <td><code>.btn</code> / <code>.btn-primary</code> / <code>.btn-ghost</code> / <code>.btn-error</code></td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+        </tr>
+        <tr>
+          <td><code>.form-group</code> / <code>.form-label</code> / <code>.form-input</code> / <code>.form-error</code></td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+        </tr>
+        <tr>
+          <td><code>.search-filter</code></td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+        </tr>
+        <tr>
+          <td><code>.data-table</code> với header xanh <code>--primary-600</code></td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+        </tr>
+        <tr>
+          <td><code>.table-pagination</code></td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+        </tr>
+        <tr>
+          <td><code>.action-btn</code> (view/edit/delete SVG)</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+        </tr>
+        <tr>
+          <td><code>.page-header</code></td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+        </tr>
+        <tr>
+          <td>Status badge (pill: green/gray)</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">✓</td>
+        </tr>
+        <tr>
+          <td>Split-screen layout (login)</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+        </tr>
+        <tr>
+          <td>Profile header (gradient band)</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+          <td style="text-align:center;">—</td>
+        </tr>
+        <tr>
+          <td>Contract card (border-left color)</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">—</td>
+          <td style="text-align:center;">✓</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. Navigation -->
+  <div class="section" id="s5">
+    <h2 class="section-title">5. Điều hướng & luồng sử dụng</h2>
+    <div class="sitemap">
+      <div class="role-block">
+        <div class="role-header">Luồng HR_MANAGER</div>
+        <div class="role-screens">
+          <div class="screen-node">01 Đăng nhập</div>
+          <div class="screen-node-arrow">→</div>
+          <div class="screen-node">02 Dashboard</div>
+          <div class="screen-node-arrow">→</div>
+          <div class="screen-node">03 Danh sách NV</div>
+          <div class="screen-node-arrow">→</div>
+          <div class="screen-node">04 Form NV (Thêm/Sửa)</div>
+          <div class="screen-node-arrow">→</div>
+          <div class="screen-node">06 Hợp đồng NV</div>
+        </div>
+      </div>
+      <div class="role-block">
+        <div class="role-header">Luồng EMPLOYEE</div>
+        <div class="role-screens">
+          <div class="screen-node">01 Đăng nhập</div>
+          <div class="screen-node-arrow">→</div>
+          <div class="screen-node">05 Hồ sơ cá nhân</div>
+          <div class="screen-node-arrow">→</div>
+          <div class="screen-node">06 Hợp đồng (chỉ đọc)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="section-sub">Mô tả chi tiết các điều hướng</h3>
+    <table class="spec-table">
+      <thead><tr><th>Từ</th><th>Đến</th><th>Hành động kích hoạt</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>01 Login</td><td>02 Dashboard</td><td>Đăng nhập thành công với role HR_MANAGER</td><td>HR_MANAGER</td></tr>
+        <tr><td>01 Login</td><td>05 Profile</td><td>Đăng nhập thành công với role EMPLOYEE</td><td>EMPLOYEE</td></tr>
+        <tr><td>02 Dashboard</td><td>03 Emp List</td><td>Click menu "Nhân viên" hoặc nút "Quản lý nhân viên"</td><td>HR_MANAGER</td></tr>
+        <tr><td>03 Emp List</td><td>04 Emp Form</td><td>Click "+ Thêm nhân viên" hoặc icon Edit</td><td>HR_MANAGER</td></tr>
+        <tr><td>03 Emp List</td><td>05 Profile</td><td>Click icon View (mắt)</td><td>HR_MANAGER</td></tr>
+        <tr><td>03 Emp List</td><td>06 Contracts</td><td>Click icon View → tab Hợp đồng</td><td>HR_MANAGER</td></tr>
+        <tr><td>05 Profile</td><td>06 Contracts</td><td>Click menu sidebar "Hợp đồng"</td><td>EMPLOYEE</td></tr>
+        <tr><td>Bất kỳ</td><td>01 Login</td><td>Click "Đăng xuất" ở topbar</td><td>Tất cả</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. Screen Previews -->
+  <div class="section" id="s6">
+    <h2 class="section-title">6. Xem trước màn hình (Mini Mockup)</h2>
+    <div class="mockup-grid">
+
+      <!-- 01 Login -->
+      <div class="mockup-card">
+        <div class="mockup-label">01 — ĐĂNG NHẬP</div>
+        <div class="mockup-frame">
+          <div class="mm-login">
+            <div class="mm-left">
+              <div class="mm-logo">UTC HRM</div>
+              <div class="mm-feature">✓ Quản lý nhân viên</div>
+              <div class="mm-feature">✓ Hợp đồng lao động</div>
+              <div class="mm-feature">✓ Phụ cấp & Lương</div>
+              <div class="mm-feature">✓ Báo cáo nhân sự</div>
+            </div>
+            <div class="mm-right">
+              <div class="mm-card-mini">
+                <div class="mm-label">Tên đăng nhập</div>
+                <div class="mm-input"></div>
+                <div class="mm-label">Mật khẩu</div>
+                <div class="mm-input"></div>
+                <div style="height:6px;"></div>
+                <div class="mm-btn"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 02 Dashboard -->
+      <div class="mockup-card">
+        <div class="mockup-label">02 — DASHBOARD HR</div>
+        <div class="mockup-frame">
+          <div class="mm-app">
+            <div class="mm-sidebar">
+              <div class="mm-sidebar-logo"></div>
+              <div class="mm-sidebar-item active"></div>
+              <div class="mm-sidebar-item"></div>
+              <div class="mm-sidebar-item"></div>
+              <div class="mm-sidebar-item"></div>
+            </div>
+            <div class="mm-body">
+              <div class="mm-topbar">
+                <div class="mm-topbar-dot"></div>
+                <div class="mm-topbar-title">HRM</div>
+              </div>
+              <div class="mm-main">
+                <div class="mm-stat-row">
+                  <div class="mm-stat"></div><div class="mm-stat"></div>
+                  <div class="mm-stat"></div><div class="mm-stat"></div>
+                </div>
+                <div class="mm-table">
+                  <div class="mm-thead"></div>
+                  <div class="mm-trow"><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div></div>
+                  <div class="mm-trow"><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div></div>
+                  <div class="mm-trow"><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 03 Employee List -->
+      <div class="mockup-card">
+        <div class="mockup-label">03 — DANH SÁCH NHÂN VIÊN</div>
+        <div class="mockup-frame">
+          <div class="mm-app">
+            <div class="mm-sidebar">
+              <div class="mm-sidebar-logo"></div>
+              <div class="mm-sidebar-item"></div>
+              <div class="mm-sidebar-item active"></div>
+              <div class="mm-sidebar-item"></div>
+            </div>
+            <div class="mm-body">
+              <div class="mm-topbar"><div class="mm-topbar-dot"></div><div class="mm-topbar-title">Nhân viên</div></div>
+              <div class="mm-main">
+                <div style="height:18px;background:var(--white);border:1px solid var(--gray-200);border-radius:3px;margin-bottom:6px;display:flex;align-items:center;padding:0 4px;gap:4px;">
+                  <div style="flex:2;height:8px;background:var(--gray-100);border-radius:2px;"></div>
+                  <div style="flex:1;height:8px;background:var(--gray-100);border-radius:2px;"></div>
+                  <div style="width:24px;height:10px;background:var(--primary-600);border-radius:2px;"></div>
+                </div>
+                <div class="mm-table">
+                  <div class="mm-thead"></div>
+                  <div class="mm-trow"><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div></div>
+                  <div class="mm-trow"><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div></div>
+                  <div class="mm-trow"><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div><div class="mm-tcell"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 04 Employee Form -->
+      <div class="mockup-card">
+        <div class="mockup-label">04 — FORM NHÂN VIÊN</div>
+        <div class="mockup-frame">
+          <div class="mm-app">
+            <div class="mm-sidebar">
+              <div class="mm-sidebar-logo"></div>
+              <div class="mm-sidebar-item"></div>
+              <div class="mm-sidebar-item active"></div>
+            </div>
+            <div class="mm-body">
+              <div class="mm-topbar"><div class="mm-topbar-dot"></div><div class="mm-topbar-title">Thêm nhân viên</div></div>
+              <div class="mm-main">
+                <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:4px;padding:6px;">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;">
+                    <div style="height:12px;background:var(--gray-100);border-radius:2px;"></div>
+                    <div style="height:12px;background:var(--gray-100);border-radius:2px;"></div>
+                    <div style="height:12px;background:var(--gray-100);border-radius:2px;"></div>
+                    <div style="height:12px;background:var(--gray-100);border-radius:2px;"></div>
+                  </div>
+                  <div style="display:flex;gap:4px;justify-content:flex-end;margin-top:6px;">
+                    <div style="width:40px;height:14px;background:var(--gray-200);border-radius:2px;"></div>
+                    <div style="width:40px;height:14px;background:var(--primary-600);border-radius:2px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 05 Profile -->
+      <div class="mockup-card">
+        <div class="mockup-label">05 — HỒ SƠ CÁ NHÂN (EMPLOYEE)</div>
+        <div class="mockup-frame">
+          <div class="mm-app">
+            <div class="mm-sidebar">
+              <div class="mm-sidebar-logo"></div>
+              <div class="mm-sidebar-item active"></div>
+              <div class="mm-sidebar-item"></div>
+              <div class="mm-sidebar-item"></div>
+              <div class="mm-sidebar-item"></div>
+            </div>
+            <div class="mm-body">
+              <div class="mm-topbar"><div class="mm-topbar-dot"></div><div class="mm-topbar-title">Hồ sơ</div></div>
+              <div class="mm-main" style="padding:0;overflow:hidden;">
+                <div style="height:40px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;padding:0 8px;gap:6px;">
+                  <div style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.3);"></div>
+                  <div>
+                    <div style="height:6px;width:60px;background:rgba(255,255,255,0.8);border-radius:2px;margin-bottom:2px;"></div>
+                    <div style="height:5px;width:40px;background:rgba(255,255,255,0.5);border-radius:2px;"></div>
+                  </div>
+                </div>
+                <div style="padding:6px;background:var(--gray-50);">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                    <div style="height:10px;background:var(--white);border:1px solid var(--gray-200);border-radius:2px;"></div>
+                    <div style="height:10px;background:var(--white);border:1px solid var(--gray-200);border-radius:2px;"></div>
+                    <div style="height:10px;background:var(--white);border:1px solid var(--gray-200);border-radius:2px;"></div>
+                    <div style="height:10px;background:var(--white);border:1px solid var(--gray-200);border-radius:2px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 06 Contracts -->
+      <div class="mockup-card">
+        <div class="mockup-label">06 — HỢP ĐỒNG LAO ĐỘNG</div>
+        <div class="mockup-frame">
+          <div class="mm-app">
+            <div class="mm-sidebar">
+              <div class="mm-sidebar-logo"></div>
+              <div class="mm-sidebar-item"></div>
+              <div class="mm-sidebar-item active"></div>
+              <div class="mm-sidebar-item"></div>
+              <div class="mm-sidebar-item"></div>
+            </div>
+            <div class="mm-body">
+              <div class="mm-topbar"><div class="mm-topbar-dot"></div><div class="mm-topbar-title">Hợp đồng</div></div>
+              <div class="mm-main">
+                <div style="background:var(--white);border:1px solid var(--gray-200);border-left:3px solid var(--success-500);border-radius:3px;padding:5px;margin-bottom:4px;">
+                  <div style="height:6px;width:80px;background:var(--gray-200);border-radius:2px;margin-bottom:3px;"></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;">
+                    <div style="height:16px;background:var(--gray-50);border-radius:2px;"></div>
+                    <div style="height:16px;background:var(--gray-50);border-radius:2px;"></div>
+                    <div style="height:16px;background:var(--gray-50);border-radius:2px;"></div>
+                  </div>
+                </div>
+                <div style="background:var(--white);border:1px solid var(--gray-200);border-left:3px solid var(--gray-300);border-radius:3px;padding:5px;opacity:0.7;">
+                  <div style="height:6px;width:60px;background:var(--gray-200);border-radius:2px;margin-bottom:3px;"></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;">
+                    <div style="height:16px;background:var(--gray-50);border-radius:2px;"></div>
+                    <div style="height:16px;background:var(--gray-50);border-radius:2px;"></div>
+                    <div style="height:16px;background:var(--gray-50);border-radius:2px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 7. Sidebar Design -->
+  <div class="section" id="s7">
+    <h2 class="section-title">7. Thiết kế Sidebar</h2>
+    <p>Sidebar sử dụng nền trắng (<code>#ffffff</code>), viền phải nhạt. Active link dùng nền <code>--primary-50</code> và chữ <code>--primary-600</code>. Tuyệt đối không dùng dark sidebar hay gradient tối.</p>
+
+    <div class="sidebar-spec">
+      <div class="sidebar-preview">
+        <div class="sp-header">
+          <div class="sp-logo"></div>
+          <span class="sp-brand">UTC HRM</span>
+        </div>
+        <div class="sp-section">Tổ chức</div>
+        <div class="sp-item active"><div class="sp-icon"></div> Dashboard</div>
+        <div class="sp-item"><div class="sp-icon"></div> Phòng ban</div>
+        <div class="sp-section">Nhân sự</div>
+        <div class="sp-item"><div class="sp-icon"></div> Nhân viên</div>
+        <div class="sp-item"><div class="sp-icon"></div> Hợp đồng</div>
+        <div class="sp-section">Phụ cấp</div>
+        <div class="sp-item"><div class="sp-icon"></div> Loại phụ cấp</div>
+        <div style="height:var(--space-4);"></div>
+      </div>
+
+      <div class="sidebar-rules">
+        <div class="rule-block">
+          <div class="rule-title">Thông số kỹ thuật</div>
+          <table class="spec-table">
+            <tbody>
+              <tr><td>Chiều rộng</td><td>240px (fixed)</td></tr>
+              <tr><td>Nền</td><td><code>#ffffff</code></td></tr>
+              <tr><td>Viền phải</td><td><code>1px solid var(--gray-200)</code></td></tr>
+              <tr><td>Active link</td><td>background: <code>var(--primary-50)</code> · color: <code>var(--primary-600)</code></td></tr>
+              <tr><td>Hover link</td><td>background: <code>var(--gray-50)</code></td></tr>
+              <tr><td>Section label</td><td>font-size: 11px · uppercase · color: <code>var(--gray-400)</code></td></tr>
+              <tr><td>Nav item</td><td>padding: 8px 12px · border-radius: 6px · margin: 1px 8px</td></tr>
+              <tr><td>Z-index</td><td>Sidebar = 100, Topbar = 200</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="rule-block">
+          <div class="rule-title">CSS mẫu cho sidebar item</div>
+          <div class="code-block"><span class="code-comment">/* Nav item cơ bản */</span>
+.<span class="code-prop">sidebar-nav-item</span> {
+  <span class="code-prop">display</span>: <span class="code-val">flex</span>;
+  <span class="code-prop">align-items</span>: <span class="code-val">center</span>;
+  <span class="code-prop">gap</span>: <span class="code-val">var(--space-3)</span>;
+  <span class="code-prop">padding</span>: <span class="code-val">var(--space-2) var(--space-3)</span>;
+  <span class="code-prop">border-radius</span>: <span class="code-val">var(--radius-md)</span>;
+  <span class="code-prop">margin</span>: <span class="code-val">1px var(--space-2)</span>;
+  <span class="code-prop">color</span>: <span class="code-val">var(--gray-600)</span>;
+  <span class="code-prop">font-size</span>: <span class="code-val">var(--font-size-sm)</span>;
+  <span class="code-prop">text-decoration</span>: <span class="code-val">none</span>;
+  <span class="code-prop">transition</span>: <span class="code-val">all var(--transition-fast)</span>;
+}
+.<span class="code-prop">sidebar-nav-item</span>:<span class="code-prop">hover</span> {
+  <span class="code-prop">background</span>: <span class="code-val">var(--gray-50)</span>;
+  <span class="code-prop">color</span>: <span class="code-val">var(--gray-800)</span>;
+}
+.<span class="code-prop">sidebar-nav-item</span>.<span class="code-prop">active</span> {
+  <span class="code-prop">background</span>: <span class="code-val">var(--primary-50)</span>;
+  <span class="code-prop">color</span>: <span class="code-val">var(--primary-600)</span>;
+  <span class="code-prop">font-weight</span>: <span class="code-val">var(--font-weight-semibold)</span>;
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;padding:var(--space-8) 0;color:var(--gray-400);font-size:var(--font-size-sm);">
+    HRM System Design Document &mdash; UTC29K1 &mdash; Phiên bản 1.0 &mdash; 2026
+  </div>
+
+</div>
+</body>
+</html>

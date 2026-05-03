@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRM Design System</title>
+<style>
+/* ─── DESIGN SYSTEM TOKENS ─────────────────────────────────── */
+:root {
+  /* Primary — Blue Indigo */
+  --primary-50:  #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+
+  /* Semantic */
+  --success-50:  #f0fdf4;
+  --success-500: #10b981;
+  --success-700: #059669;
+  --warning-50:  #fffbeb;
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+  --error-50:    #fef2f2;
+  --error-500:   #dc2626;
+  --error-600:   #b91c1c;
+
+  /* Gray scale (Slate) */
+  --gray-50:  #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  --white:    #ffffff;
+
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-lg:   18px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+  --text-3xl:  32px;
+  --fw-normal:   400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* Spacing (4px base) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px;
+
+  /* Radius */
+  --r-sm:   4px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-full: 9999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.10);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.15);
+  --shadow-xl: 0 20px 40px rgba(0,0,0,.15);
+
+  /* Transition */
+  --t-fast:   0.15s ease;
+  --t-normal: 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ─── RESET & BASE ──────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--font-family);font-size:var(--text-base);
+  line-height:1.6;color:var(--gray-800);background:var(--gray-100);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ─── DOC LAYOUT ────────────────────────────────────────────── */
+.ds-nav{
+  position:fixed;top:0;left:0;bottom:0;width:220px;
+  background:var(--white);border-right:1px solid var(--gray-200);
+  padding:var(--sp-6) var(--sp-4);overflow-y:auto;z-index:100;
+}
+.ds-nav-title{font-size:var(--text-lg);font-weight:var(--fw-bold);
+  color:var(--primary-600);margin-bottom:var(--sp-1);}
+.ds-nav-sub{font-size:var(--text-xs);color:var(--gray-400);margin-bottom:var(--sp-6);}
+.ds-nav-section{font-size:11px;font-weight:var(--fw-semibold);text-transform:uppercase;
+  letter-spacing:.08em;color:var(--gray-400);padding:var(--sp-4) 0 var(--sp-2);}
+.ds-nav a{display:block;font-size:var(--text-sm);color:var(--gray-600);
+  text-decoration:none;padding:var(--sp-1) var(--sp-2);border-radius:var(--r-md);
+  margin-bottom:2px;transition:all var(--t-fast);}
+.ds-nav a:hover{background:var(--gray-50);color:var(--gray-900);}
+.ds-nav a.active{background:var(--primary-50);color:var(--primary-600);font-weight:var(--fw-semibold);}
+
+.ds-main{margin-left:220px;padding:var(--sp-10);}
+.ds-section{margin-bottom:var(--sp-16);}
+.ds-section-title{
+  font-size:var(--text-2xl);font-weight:var(--fw-bold);color:var(--gray-900);
+  padding-bottom:var(--sp-3);border-bottom:3px solid var(--primary-500);
+  margin-bottom:var(--sp-8);display:flex;align-items:center;gap:var(--sp-3);
+}
+.ds-subsection{margin-bottom:var(--sp-10);}
+.ds-subsection-title{font-size:var(--text-lg);font-weight:var(--fw-semibold);
+  color:var(--gray-700);margin-bottom:var(--sp-5);}
+.ds-label{font-size:var(--text-xs);font-weight:var(--fw-semibold);text-transform:uppercase;
+  letter-spacing:.06em;color:var(--gray-400);margin-bottom:var(--sp-2);}
+.ds-desc{font-size:var(--text-sm);color:var(--gray-500);margin-bottom:var(--sp-4);}
+.ds-preview{
+  background:var(--white);border:1px solid var(--gray-200);border-radius:var(--r-lg);
+  padding:var(--sp-6);margin-bottom:var(--sp-3);
+}
+.ds-preview.gray{background:var(--gray-100);}
+.ds-row{display:flex;align-items:flex-start;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-4);}
+.ds-row.center{align-items:center;}
+.ds-col{display:flex;flex-direction:column;gap:var(--sp-3);}
+.ds-token{
+  display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);
+  min-width:80px;
+}
+.ds-token-value{font-size:var(--text-xs);color:var(--gray-500);font-family:monospace;}
+
+/* ─── 1. COLOR PALETTE ──────────────────────────────────────── */
+.swatch-row{display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-4);}
+.swatch{
+  display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);
+  min-width:72px;
+}
+.swatch-box{width:64px;height:64px;border-radius:var(--r-md);border:1px solid rgba(0,0,0,.06);}
+.swatch-name{font-size:11px;font-weight:var(--fw-semibold);color:var(--gray-600);}
+.swatch-hex{font-size:10px;color:var(--gray-400);font-family:monospace;}
+
+/* ─── 2. TYPOGRAPHY ─────────────────────────────────────────── */
+.type-row{
+  display:flex;align-items:baseline;gap:var(--sp-6);
+  padding:var(--sp-3) 0;border-bottom:1px solid var(--gray-100);
+}
+.type-meta{min-width:180px;font-size:var(--text-xs);color:var(--gray-400);font-family:monospace;}
+
+/* ─── 3. BUTTONS ────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);
+  padding:var(--sp-3) var(--sp-5);border:none;border-radius:var(--r-md);
+  font-size:var(--text-sm);font-weight:var(--fw-semibold);
+  text-decoration:none;cursor:pointer;transition:all var(--t-normal);
+  font-family:var(--font-family);
+}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary-500),var(--primary-600));
+  color:var(--white);box-shadow:var(--shadow-md);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.btn-ghost{background:transparent;color:var(--gray-600);border:1.5px solid var(--gray-300);}
+.btn-ghost:hover{background:var(--gray-50);border-color:var(--gray-400);color:var(--gray-800);}
+.btn-success{
+  background:linear-gradient(135deg,var(--success-500),var(--success-700));
+  color:var(--white);box-shadow:var(--shadow-sm);
+}
+.btn-success:hover{transform:translateY(-1px);}
+.btn-warning{
+  background:linear-gradient(135deg,var(--warning-500),var(--warning-600));
+  color:var(--white);box-shadow:var(--shadow-sm);
+}
+.btn-error{
+  background:linear-gradient(135deg,var(--error-500),var(--error-600));
+  color:var(--white);box-shadow:var(--shadow-sm);
+}
+.btn-error:hover{transform:translateY(-1px);}
+.btn-sm{padding:var(--sp-2) var(--sp-3);font-size:var(--text-xs);}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+.btn-logout{
+  display:inline-flex;align-items:center;gap:var(--sp-2);
+  padding:var(--sp-2) var(--sp-4);border:1.5px solid var(--gray-300);
+  border-radius:var(--r-md);background:transparent;
+  font-size:var(--text-sm);color:var(--gray-600);cursor:pointer;
+  transition:all var(--t-fast);font-family:var(--font-family);font-weight:var(--fw-medium);
+}
+.btn-logout:hover{background:var(--error-50);border-color:var(--error-500);color:var(--error-600);}
+.btn-logout svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ─── 4. BADGES ─────────────────────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;padding:3px 10px;
+  border-radius:var(--r-full);font-size:var(--text-xs);font-weight:var(--fw-semibold);
+  white-space:nowrap;
+}
+.badge-active    {background:#dcfce7;color:#166534;}
+.badge-inactive  {background:var(--gray-100);color:var(--gray-500);}
+.badge-expired   {background:var(--warning-50);color:var(--warning-600);}
+.badge-terminated{background:var(--error-50);color:var(--error-500);}
+.badge-probation {background:var(--primary-50);color:var(--primary-600);}
+.badge-official  {background:#f0fdf4;color:var(--success-700);}
+
+/* ─── 5. FORM ───────────────────────────────────────────────── */
+.form-group{margin-bottom:var(--sp-5);}
+.form-label{
+  display:block;margin-bottom:var(--sp-2);
+  font-weight:var(--fw-medium);color:var(--gray-700);font-size:var(--text-sm);
+}
+.form-label .req{color:var(--error-500);}
+.input-wrapper{position:relative;}
+.input-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:var(--gray-400);pointer-events:none;
+}
+.input-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+.form-input{
+  width:100%;padding:var(--sp-3) var(--sp-4);
+  border:2px solid var(--gray-300);border-radius:var(--r-md);
+  font-size:var(--text-sm);transition:all var(--t-normal);
+  background:var(--white);color:var(--gray-900);
+  font-family:var(--font-family);height:40px;
+}
+.form-input.icon-left{padding-left:40px;}
+.form-input:focus{outline:none;border-color:var(--primary-500);box-shadow:0 0 0 4px rgba(59,130,246,.10);}
+.form-input.is-error{border-color:var(--error-500);background:var(--error-50);}
+.form-input:disabled{background:var(--gray-100);color:var(--gray-400);cursor:not-allowed;}
+.form-error{color:var(--error-500);font-size:var(--text-xs);margin-top:var(--sp-1);}
+.form-hint {color:var(--gray-400);font-size:var(--text-xs);margin-top:var(--sp-1);}
+
+/* ─── 6. CARD ───────────────────────────────────────────────── */
+.card{
+  background:var(--white);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-sm);border:1px solid var(--gray-200);overflow:hidden;
+}
+.card-header{
+  padding:var(--sp-5) var(--sp-6);border-bottom:1px solid var(--gray-200);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-header h3{font-size:var(--text-base);font-weight:var(--fw-semibold);color:var(--gray-800);}
+.card-body{padding:var(--sp-6);}
+.card-footer{
+  padding:var(--sp-4) var(--sp-6);border-top:1px solid var(--gray-200);
+  background:var(--gray-50);display:flex;justify-content:flex-end;gap:var(--sp-3);
+}
+
+/* ─── 7. NAVBAR ─────────────────────────────────────────────── */
+.navbar{
+  height:64px;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);
+  box-shadow:var(--shadow-sm);border-bottom:1px solid var(--gray-200);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--sp-6);border-radius:var(--r-lg);
+}
+.navbar-brand{display:flex;align-items:center;gap:var(--sp-3);}
+.navbar-logo{
+  width:36px;height:36px;
+  background:linear-gradient(135deg,var(--primary-500),var(--primary-700));
+  border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;
+}
+.navbar-logo svg{width:20px;height:20px;stroke:white;fill:none;stroke-width:2;}
+.navbar-title{
+  font-size:var(--text-lg);font-weight:var(--fw-bold);
+  background:linear-gradient(135deg,var(--primary-500),var(--primary-700));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.navbar-user{display:flex;align-items:center;gap:var(--sp-3);}
+.user-avatar{
+  width:36px;height:36px;
+  background:linear-gradient(135deg,var(--primary-500),var(--primary-700));
+  border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;
+  color:white;font-size:var(--text-sm);font-weight:var(--fw-bold);
+}
+.user-name{font-size:var(--text-sm);font-weight:var(--fw-semibold);color:var(--gray-800);}
+.user-role{font-size:var(--text-xs);color:var(--gray-500);}
+
+/* ─── 8. SIDEBAR ────────────────────────────────────────────── */
+.sidebar-demo{
+  width:220px;background:var(--white);border:1px solid var(--gray-200);
+  border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-2);
+}
+.sidebar-section{
+  font-size:11px;font-weight:var(--fw-semibold);text-transform:uppercase;
+  letter-spacing:.08em;color:var(--gray-400);padding:var(--sp-3) var(--sp-2) var(--sp-1);
+}
+.sidebar-item{
+  display:flex;align-items:center;gap:var(--sp-3);
+  padding:var(--sp-2) var(--sp-2);margin:1px var(--sp-1);
+  border-radius:var(--r-md);color:var(--gray-600);font-size:var(--text-sm);
+  text-decoration:none;cursor:pointer;font-weight:var(--fw-medium);transition:all var(--t-fast);
+}
+.sidebar-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;}
+.sidebar-item:hover{background:var(--gray-50);color:var(--gray-800);}
+.sidebar-item.active{background:var(--primary-50);color:var(--primary-600);font-weight:var(--fw-semibold);}
+
+/* ─── 9. DATA TABLE ─────────────────────────────────────────── */
+.data-table{
+  background:var(--white);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-sm);border:1px solid var(--gray-200);overflow:hidden;
+}
+.data-table table{width:100%;border-collapse:collapse;}
+.data-table thead{background:var(--primary-600);}
+.data-table th{
+  padding:var(--sp-3) var(--sp-4);font-size:var(--text-xs);
+  font-weight:var(--fw-semibold);color:var(--white);
+  text-align:left;border-bottom:1px solid var(--primary-700);white-space:nowrap;
+}
+.data-table td{
+  padding:var(--sp-3) var(--sp-4);font-size:var(--text-sm);
+  color:var(--gray-800);border-bottom:1px solid var(--gray-100);vertical-align:middle;
+}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:var(--gray-50);}
+.emp-code{
+  font-family:monospace;font-size:var(--text-xs);
+  background:var(--primary-50);color:var(--primary-600);
+  padding:2px 7px;border-radius:var(--r-sm);
+}
+
+/* ─── 10. ACTION BUTTONS ────────────────────────────────────── */
+.action-btn{
+  width:32px;height:32px;border:none;border-radius:var(--r-md);
+  display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all var(--t-normal);background:transparent;
+  color:var(--gray-400);
+}
+.action-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+.action-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm);}
+.action-btn.view:hover{background:var(--primary-50);color:var(--primary-600);}
+.action-btn.edit:hover{background:var(--warning-50);color:var(--warning-600);}
+.action-btn.del:hover{background:var(--error-50);color:var(--error-500);}
+
+/* ─── 11. SEARCH FILTER ─────────────────────────────────────── */
+.search-filter{
+  background:var(--white);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-sm);border:1px solid var(--gray-200);
+}
+.search-filter__container{padding:var(--sp-4) var(--sp-5);}
+.search-filter__fields{display:flex;gap:var(--sp-4);align-items:flex-end;flex-wrap:wrap;}
+.search-filter__field{display:flex;flex-direction:column;}
+.search-filter__field.full{flex:1;min-width:180px;}
+.search-filter__field.select{width:150px;}
+.search-filter__label{
+  display:block;font-size:var(--text-sm);font-weight:var(--fw-medium);
+  color:var(--gray-700);margin-bottom:var(--sp-1);
+}
+.search-filter__input,.search-filter__select{
+  width:100%;padding:var(--sp-2) var(--sp-3);
+  border:1px solid var(--gray-300);border-radius:var(--r-md);
+  font-size:var(--text-sm);background:var(--white);
+  color:var(--gray-900);height:38px;font-family:var(--font-family);
+  transition:all var(--t-fast);
+}
+.search-filter__input:focus,.search-filter__select:focus{
+  outline:none;box-shadow:0 0 0 2px var(--primary-500);border-color:transparent;
+}
+.search-filter__actions{display:flex;align-items:flex-end;gap:var(--sp-2);}
+
+/* ─── 12. PAGINATION ────────────────────────────────────────── */
+.pagination{display:flex;align-items:center;justify-content:space-between;
+  padding:var(--sp-4) var(--sp-6);}
+.pagination-info{font-size:var(--text-sm);color:var(--gray-500);}
+.pagination-controls{display:flex;align-items:center;gap:var(--sp-1);}
+.page-btn{
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--gray-300);border-radius:var(--r-md);
+  background:var(--white);color:var(--gray-600);
+  font-size:var(--text-sm);font-weight:var(--fw-medium);
+  cursor:pointer;transition:all var(--t-fast);
+}
+.page-btn:hover{background:var(--gray-50);border-color:var(--gray-400);}
+.page-btn.active{background:var(--primary-600);border-color:var(--primary-600);color:var(--white);}
+.page-btn:disabled{opacity:.5;cursor:not-allowed;}
+.page-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ─── 13. ALERT / NOTICE ────────────────────────────────────── */
+.alert{
+  display:flex;align-items:flex-start;gap:var(--sp-3);
+  padding:var(--sp-3) var(--sp-4);border-radius:var(--r-md);
+  font-size:var(--text-sm);margin-bottom:var(--sp-3);
+}
+.alert svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:1px;}
+.alert-error  {background:var(--error-50);  border:1px solid #fecaca;color:var(--error-600);}
+.alert-success{background:var(--success-50);border:1px solid #bbf7d0;color:var(--success-700);}
+.alert-warning{background:var(--warning-50);border:1px solid #fde68a;color:var(--warning-600);}
+.alert-info   {background:var(--primary-50);border:1px solid var(--primary-100);color:var(--primary-700);}
+
+/* ─── 14. MODAL ─────────────────────────────────────────────── */
+.modal-overlay{
+  background:rgba(15,23,42,.4);border-radius:var(--r-lg);
+  padding:var(--sp-10);display:flex;align-items:center;justify-content:center;
+}
+.modal{
+  background:var(--white);border-radius:var(--r-xl);border:1px solid var(--gray-200);
+  box-shadow:var(--shadow-xl);padding:var(--sp-8);max-width:400px;width:100%;
+}
+.modal-title{font-size:var(--text-lg);font-weight:var(--fw-bold);color:var(--gray-900);margin-bottom:var(--sp-2);}
+.modal-desc{font-size:var(--text-sm);color:var(--gray-500);margin-bottom:var(--sp-6);}
+.modal-actions{display:flex;gap:var(--sp-3);justify-content:flex-end;}
+
+/* ─── 15. STAT CARD ─────────────────────────────────────────── */
+.stat-card{
+  background:var(--white);border-radius:var(--r-lg);border:1px solid var(--gray-200);
+  box-shadow:var(--shadow-sm);padding:var(--sp-5);
+  display:flex;align-items:center;gap:var(--sp-4);
+  transition:all var(--t-normal);
+}
+.stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+.stat-icon{
+  width:52px;height:52px;border-radius:var(--r-lg);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.stat-icon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;}
+.stat-icon.blue  {background:var(--primary-50);color:var(--primary-600);}
+.stat-icon.green {background:#dcfce7;color:#166534;}
+.stat-icon.yellow{background:var(--warning-50);color:var(--warning-600);}
+.stat-icon.red   {background:var(--error-50);color:var(--error-500);}
+.stat-value{font-size:var(--text-2xl);font-weight:var(--fw-bold);color:var(--gray-900);line-height:1;}
+.stat-label{font-size:var(--text-sm);color:var(--gray-500);margin-top:var(--sp-1);}
+
+/* ─── 16. PAGE HEADER ───────────────────────────────────────── */
+.page-header{margin-bottom:var(--sp-6);}
+.page-header__content{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-1);}
+.page-header__title{font-size:var(--text-2xl);font-weight:var(--fw-bold);color:var(--gray-900);}
+.page-header__subtitle{font-size:var(--text-sm);color:var(--gray-500);}
+.page-header__actions{display:flex;align-items:center;gap:var(--sp-3);}
+
+/* ─── 17. BREADCRUMB ────────────────────────────────────────── */
+.breadcrumb{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--text-sm);
+  color:var(--gray-500);margin-bottom:var(--sp-5);}
+.breadcrumb a{color:var(--primary-600);text-decoration:none;}
+.breadcrumb a:hover{text-decoration:underline;}
+.breadcrumb-sep{color:var(--gray-300);}
+
+/* ─── 18. TABS ──────────────────────────────────────────────── */
+.tabs-nav{display:flex;border-bottom:1px solid var(--gray-200);padding:0 var(--sp-6);}
+.tab-btn{
+  padding:var(--sp-4) var(--sp-5);font-size:var(--text-sm);font-weight:var(--fw-medium);
+  color:var(--gray-500);border:none;background:transparent;cursor:pointer;
+  position:relative;transition:all var(--t-fast);font-family:var(--font-family);
+}
+.tab-btn:hover{color:var(--gray-800);}
+.tab-btn.active{color:var(--primary-600);font-weight:var(--fw-semibold);}
+.tab-btn.active::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;
+  background:var(--primary-600);border-radius:2px 2px 0 0;
+}
+
+/* ─── DOC UTILS ─────────────────────────────────────────────── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-4);}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);}
+.mt-4{margin-top:var(--sp-4);}
+.usage-table{width:100%;border-collapse:collapse;font-size:var(--text-sm);}
+.usage-table th{background:var(--gray-50);padding:var(--sp-3) var(--sp-4);
+  text-align:left;font-weight:var(--fw-semibold);color:var(--gray-700);
+  border-bottom:2px solid var(--gray-200);}
+.usage-table td{padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--gray-100);color:var(--gray-600);}
+.usage-table code{background:var(--gray-100);padding:1px 5px;border-radius:var(--r-sm);
+  font-family:monospace;font-size:12px;color:var(--primary-700);}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="ds-nav">
+  <div class="ds-nav-title">HRM Design System</div>
+  <div class="ds-nav-sub">v1.0 · 2026-04-28</div>
+  <div class="ds-nav-section">Tokens</div>
+  <a href="#colors">Màu sắc</a>
+  <a href="#typography">Typography</a>
+  <a href="#spacing">Spacing & Radius</a>
+  <div class="ds-nav-section">Components</div>
+  <a href="#buttons">Buttons</a>
+  <a href="#badges">Badges</a>
+  <a href="#forms">Form Elements</a>
+  <a href="#card">Card</a>
+  <a href="#navbar">Navbar</a>
+  <a href="#sidebar">Sidebar</a>
+  <a href="#data-table">Data Table</a>
+  <a href="#action-btns">Action Buttons</a>
+  <a href="#search-filter">Search Filter</a>
+  <a href="#pagination">Pagination</a>
+  <a href="#alerts">Alert / Notice</a>
+  <a href="#modal">Modal</a>
+  <a href="#stat-card">Stat Card</a>
+  <a href="#page-header">Page Header</a>
+  <a href="#breadcrumb">Breadcrumb</a>
+  <a href="#tabs">Tabs</a>
+  <div class="ds-nav-section">Usage</div>
+  <a href="#screen-map">Screen Map</a>
+</nav>
+
+<main class="ds-main">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:var(--sp-12)">
+    <h1 style="font-size:var(--text-3xl);font-weight:var(--fw-bold);color:var(--gray-900);margin-bottom:var(--sp-2)">
+      HRM Design System
+    </h1>
+    <p style="font-size:var(--text-base);color:var(--gray-500);max-width:640px">
+      Tài liệu thành phần UI cho module Quản lý Nhân sự (HRM). Mọi màn hình trong dự án đều dùng chung bộ token và component này để đảm bảo nhất quán.
+    </p>
+  </div>
+
+  <!-- ── 1. COLORS ── -->
+  <section id="colors" class="ds-section">
+    <h2 class="ds-section-title">🎨 Màu sắc</h2>
+
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Primary — Blue</div>
+      <div class="ds-desc">Dùng cho: nút chính, header bảng, active sidebar, link, focus ring.</div>
+      <div class="swatch-row">
+        <div class="swatch"><div class="swatch-box" style="background:#eff6ff"></div><div class="swatch-name">50</div><div class="swatch-hex">#eff6ff</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#dbeafe"></div><div class="swatch-name">100</div><div class="swatch-hex">#dbeafe</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#3b82f6"></div><div class="swatch-name">500</div><div class="swatch-hex">#3b82f6</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#2563eb"></div><div class="swatch-name">600 ★</div><div class="swatch-hex">#2563eb</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#1d4ed8"></div><div class="swatch-name">700</div><div class="swatch-hex">#1d4ed8</div></div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Semantic</div>
+      <div class="swatch-row">
+        <div class="swatch"><div class="swatch-box" style="background:#10b981"></div><div class="swatch-name">Success</div><div class="swatch-hex">#10b981</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#f59e0b"></div><div class="swatch-name">Warning</div><div class="swatch-hex">#f59e0b</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#dc2626"></div><div class="swatch-name">Error</div><div class="swatch-hex">#dc2626</div></div>
+      </div>
+    </div>
+
+    <div class="ds-subsection">
+      <div class="ds-subsection-title">Gray (Slate)</div>
+      <div class="swatch-row">
+        <div class="swatch"><div class="swatch-box" style="background:#f8fafc;border:1px solid #e2e8f0"></div><div class="swatch-name">50</div><div class="swatch-hex">body bg</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#f1f5f9;border:1px solid #e2e8f0"></div><div class="swatch-name">100</div><div class="swatch-hex">page bg</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#e2e8f0"></div><div class="swatch-name">200</div><div class="swatch-hex">border</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#94a3b8"></div><div class="swatch-name">400</div><div class="swatch-hex">placeholder</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#64748b"></div><div class="swatch-name">500</div><div class="swatch-hex">muted text</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#1e293b"></div><div class="swatch-name">800</div><div class="swatch-hex">body text</div></div>
+        <div class="swatch"><div class="swatch-box" style="background:#0f172a"></div><div class="swatch-name">900</div><div class="swatch-hex">heading</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 2. TYPOGRAPHY ── -->
+  <section id="typography" class="ds-section">
+    <h2 class="ds-section-title">✏️ Typography</h2>
+    <div class="ds-preview">
+      <div class="type-row"><div class="type-meta">--text-3xl · bold</div><span style="font-size:32px;font-weight:700;color:var(--gray-900)">Tiêu đề trang chính</span></div>
+      <div class="type-row"><div class="type-meta">--text-2xl · bold</div><span style="font-size:24px;font-weight:700;color:var(--gray-900)">Tiêu đề section / page-header</span></div>
+      <div class="type-row"><div class="type-meta">--text-xl · semibold</div><span style="font-size:20px;font-weight:600;color:var(--gray-800)">Card title lớn</span></div>
+      <div class="type-row"><div class="type-meta">--text-lg · semibold</div><span style="font-size:18px;font-weight:600;color:var(--gray-800)">Navbar brand · Card header</span></div>
+      <div class="type-row"><div class="type-meta">--text-base · medium</div><span style="font-size:16px;font-weight:500;color:var(--gray-800)">Body text mặc định</span></div>
+      <div class="type-row"><div class="type-meta">--text-sm · normal</div><span style="font-size:14px;color:var(--gray-600)">Label · Table cell · Form input</span></div>
+      <div class="type-row"><div class="type-meta">--text-xs · semibold</div><span style="font-size:12px;font-weight:600;color:var(--gray-500)">BADGE · SIDEBAR SECTION · HINT</span></div>
+    </div>
+  </section>
+
+  <!-- ── 3. SPACING ── -->
+  <section id="spacing" class="ds-section">
+    <h2 class="ds-section-title">📐 Spacing & Radius</h2>
+    <div class="grid-2">
+      <div>
+        <div class="ds-subsection-title">Spacing</div>
+        <div class="ds-preview" style="display:flex;gap:var(--sp-3);align-items:flex-end;flex-wrap:wrap">
+          <div class="ds-token"><div style="width:4px;height:4px;background:var(--primary-500);border-radius:1px"></div><div class="ds-token-value">sp-1 · 4px</div></div>
+          <div class="ds-token"><div style="width:8px;height:8px;background:var(--primary-500);border-radius:1px"></div><div class="ds-token-value">sp-2 · 8px</div></div>
+          <div class="ds-token"><div style="width:12px;height:12px;background:var(--primary-500);border-radius:1px"></div><div class="ds-token-value">sp-3 · 12px</div></div>
+          <div class="ds-token"><div style="width:16px;height:16px;background:var(--primary-500);border-radius:1px"></div><div class="ds-token-value">sp-4 · 16px</div></div>
+          <div class="ds-token"><div style="width:24px;height:24px;background:var(--primary-500);border-radius:1px"></div><div class="ds-token-value">sp-6 · 24px</div></div>
+          <div class="ds-token"><div style="width:32px;height:32px;background:var(--primary-500);border-radius:1px"></div><div class="ds-token-value">sp-8 · 32px</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="ds-subsection-title">Border Radius</div>
+        <div class="ds-preview" style="display:flex;gap:var(--sp-4);align-items:center;flex-wrap:wrap">
+          <div class="ds-token"><div style="width:48px;height:48px;background:var(--primary-100);border:2px solid var(--primary-300);border-radius:4px"></div><div class="ds-token-value">r-sm · 4px</div></div>
+          <div class="ds-token"><div style="width:48px;height:48px;background:var(--primary-100);border:2px solid var(--primary-300);border-radius:8px"></div><div class="ds-token-value">r-md · 8px</div></div>
+          <div class="ds-token"><div style="width:48px;height:48px;background:var(--primary-100);border:2px solid var(--primary-300);border-radius:12px"></div><div class="ds-token-value">r-lg · 12px</div></div>
+          <div class="ds-token"><div style="width:48px;height:48px;background:var(--primary-100);border:2px solid var(--primary-300);border-radius:16px"></div><div class="ds-token-value">r-xl · 16px</div></div>
+          <div class="ds-token"><div style="width:48px;height:24px;background:var(--primary-100);border:2px solid var(--primary-300);border-radius:9999px"></div><div class="ds-token-value">r-full</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4. BUTTONS ── -->
+  <section id="buttons" class="ds-section">
+    <h2 class="ds-section-title">🔲 Buttons</h2>
+    <div class="ds-preview">
+      <div class="ds-row center">
+        <button class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Primary
+        </button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-success">Success</button>
+        <button class="btn btn-warning">Warning</button>
+        <button class="btn btn-error">Error</button>
+        <button class="btn btn-primary btn-sm">Primary sm</button>
+        <button class="btn btn-ghost btn-sm">Ghost sm</button>
+        <button class="btn btn-primary" disabled>Disabled</button>
+      </div>
+      <div class="ds-row center" style="margin-top:var(--sp-3)">
+        <button class="btn-logout">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Đăng xuất
+        </button>
+      </div>
+    </div>
+    <table class="usage-table">
+      <thead><tr><th>Class</th><th>Dùng cho</th><th>Màn hình</th></tr></thead>
+      <tbody>
+        <tr><td><code>btn-primary</code></td><td>Hành động chính: Lưu, Thêm mới, Tìm kiếm</td><td>Tất cả</td></tr>
+        <tr><td><code>btn-ghost</code></td><td>Hủy, Quay lại, Xem tất cả</td><td>Form, List</td></tr>
+        <tr><td><code>btn-error</code></td><td>Xác nhận kết thúc/vô hiệu hóa</td><td>Modal</td></tr>
+        <tr><td><code>btn-warning</code></td><td>Chấm dứt hợp đồng</td><td>Contract</td></tr>
+        <tr><td><code>btn-sm</code></td><td>Thêm vào bất kỳ btn để thu nhỏ</td><td>Table actions</td></tr>
+        <tr><td><code>btn-logout</code></td><td>Nút đăng xuất trên navbar</td><td>Mọi trang</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 5. BADGES ── -->
+  <section id="badges" class="ds-section">
+    <h2 class="ds-section-title">🏷️ Badges</h2>
+    <div class="ds-preview">
+      <div class="ds-row center">
+        <span class="badge badge-active">ACTIVE</span>
+        <span class="badge badge-inactive">INACTIVE</span>
+        <span class="badge badge-expired">EXPIRED</span>
+        <span class="badge badge-terminated">TERMINATED</span>
+        <span class="badge badge-probation">PROBATION</span>
+        <span class="badge badge-official">OFFICIAL</span>
+      </div>
+    </div>
+    <table class="usage-table">
+      <thead><tr><th>Class</th><th>Dùng cho</th></tr></thead>
+      <tbody>
+        <tr><td><code>badge-active</code></td><td>Nhân viên / Hợp đồng / Phụ cấp đang hoạt động</td></tr>
+        <tr><td><code>badge-inactive</code></td><td>Đã vô hiệu hóa (soft delete)</td></tr>
+        <tr><td><code>badge-expired</code></td><td>Hợp đồng hết hạn tự nhiên</td></tr>
+        <tr><td><code>badge-terminated</code></td><td>Hợp đồng bị chấm dứt sớm</td></tr>
+        <tr><td><code>badge-probation</code></td><td>Hợp đồng thử việc</td></tr>
+        <tr><td><code>badge-official</code></td><td>Hợp đồng chính thức</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 6. FORMS ── -->
+  <section id="forms" class="ds-section">
+    <h2 class="ds-section-title">📝 Form Elements</h2>
+    <div class="ds-preview" style="max-width:480px">
+      <div class="form-group">
+        <label class="form-label">Họ và tên <span class="req">*</span></label>
+        <input type="text" class="form-input" placeholder="Nguyễn Văn A">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tên đăng nhập</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+          <input type="text" class="form-input icon-left" placeholder="Nhập tên đăng nhập" value="admin">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Trạng thái</label>
+        <select class="form-input">
+          <option>ACTIVE</option>
+          <option>INACTIVE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email <span class="req">*</span></label>
+        <input type="email" class="form-input is-error" value="sai@định dạng">
+        <div class="form-error">Email không đúng định dạng.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mã nhân viên</label>
+        <input type="text" class="form-input" value="NV260428001" disabled>
+        <div class="form-hint">Tự sinh khi lưu — không chỉnh sửa thủ công.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 7. CARD ── -->
+  <section id="card" class="ds-section">
+    <h2 class="ds-section-title">🗃️ Card</h2>
+    <div class="ds-preview">
+      <div class="card" style="max-width:400px">
+        <div class="card-header">
+          <h3>Tiêu đề card</h3>
+          <button class="btn btn-primary btn-sm">Thêm mới</button>
+        </div>
+        <div class="card-body">
+          <p style="font-size:var(--text-sm);color:var(--gray-600)">Nội dung bên trong card. Dùng cho form, danh sách thông tin, contract preview, v.v.</p>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-ghost">Hủy</button>
+          <button class="btn btn-primary">Lưu</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 8. NAVBAR ── -->
+  <section id="navbar" class="ds-section">
+    <h2 class="ds-section-title">🔝 Navbar</h2>
+    <div class="ds-preview gray">
+      <div class="navbar">
+        <div class="navbar-brand">
+          <div class="navbar-logo">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <span class="navbar-title">HRM System</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--sp-4)">
+          <div class="navbar-user">
+            <div class="user-avatar">A</div>
+            <div><div class="user-name">admin</div><div class="user-role">HR Manager</div></div>
+          </div>
+          <button class="btn-logout">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Đăng xuất
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="ds-desc" style="margin-top:var(--sp-3)">Fixed top, height 64px · background rgba(255,255,255,.95) + backdrop-filter blur</div>
+  </section>
+
+  <!-- ── 9. SIDEBAR ── -->
+  <section id="sidebar" class="ds-section">
+    <h2 class="ds-section-title">📂 Sidebar</h2>
+    <div class="ds-preview gray" style="display:flex;gap:var(--sp-8)">
+      <div>
+        <div class="ds-label">HR Manager</div>
+        <div class="sidebar-demo">
+          <div class="sidebar-section">Tổ chức</div>
+          <a class="sidebar-item" href="#"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Phòng ban</a>
+          <a class="sidebar-item" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Chức vụ</a>
+          <div class="sidebar-section">Nhân sự</div>
+          <a class="sidebar-item active" href="#"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Nhân viên</a>
+          <a class="sidebar-item" href="#"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Hợp đồng</a>
+          <div class="sidebar-section">Phụ cấp</div>
+          <a class="sidebar-item" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Danh mục PC</a>
+          <a class="sidebar-item" href="#"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Phụ cấp NV</a>
+        </div>
+      </div>
+      <div>
+        <div class="ds-label">Employee (4 items)</div>
+        <div class="sidebar-demo">
+          <div class="sidebar-section">Của tôi</div>
+          <a class="sidebar-item active" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Hồ sơ của tôi</a>
+          <a class="sidebar-item" href="#"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Hợp đồng</a>
+          <a class="sidebar-item" href="#"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Phụ cấp</a>
+          <a class="sidebar-item" href="#"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Người phụ thuộc</a>
+        </div>
+      </div>
+    </div>
+    <div class="ds-desc" style="margin-top:var(--sp-3)">Fixed left, width 240px · background white · Active: <code style="background:var(--gray-100);padding:1px 5px;border-radius:var(--r-sm);font-family:monospace">--primary-50 / --primary-600</code></div>
+  </section>
+
+  <!-- ── 10. DATA TABLE ── -->
+  <section id="data-table" class="ds-section">
+    <h2 class="ds-section-title">📊 Data Table</h2>
+    <div class="ds-preview" style="padding:0">
+      <div class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã NV</th><th>Họ và tên</th><th>Phòng ban</th>
+              <th>Trạng thái</th><th style="text-align:center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="emp-code">NV260428001</span></td>
+              <td><strong>Trần Thị C</strong></td>
+              <td>Phòng IT</td>
+              <td><span class="badge badge-active">ACTIVE</span></td>
+              <td style="text-align:center">
+                <button class="action-btn view" title="Xem chi tiết"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <button class="action-btn edit" title="Chỉnh sửa"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="action-btn del" title="Vô hiệu hóa"><svg viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/></svg></button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="emp-code">NV260415002</span></td>
+              <td><strong>Nguyễn Văn A</strong></td>
+              <td>Phòng Nhân sự</td>
+              <td><span class="badge badge-inactive">INACTIVE</span></td>
+              <td style="text-align:center">
+                <button class="action-btn view" title="Xem chi tiết"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                <button class="action-btn edit" title="Chỉnh sửa"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="action-btn del" title="Vô hiệu hóa"><svg viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/></svg></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="ds-desc" style="margin-top:var(--sp-3)">Header nền <code style="background:var(--gray-100);padding:1px 5px;border-radius:var(--r-sm);font-family:monospace">--primary-600 (#2563eb)</code> · Text trắng · Row hover <code style="background:var(--gray-100);padding:1px 5px;border-radius:var(--r-sm);font-family:monospace">--gray-50</code></div>
+  </section>
+
+  <!-- ── 11. ACTION BUTTONS ── -->
+  <section id="action-btns" class="ds-section">
+    <h2 class="ds-section-title">⚡ Action Buttons</h2>
+    <div class="ds-preview">
+      <div class="ds-row center">
+        <button class="action-btn view"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <span style="font-size:var(--text-xs);color:var(--gray-400)">view — hover xanh</span>
+        <button class="action-btn edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <span style="font-size:var(--text-xs);color:var(--gray-400)">edit — hover vàng</span>
+        <button class="action-btn del"><svg viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/></svg></button>
+        <span style="font-size:var(--text-xs);color:var(--gray-400)">del — hover đỏ</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 12. SEARCH FILTER ── -->
+  <section id="search-filter" class="ds-section">
+    <h2 class="ds-section-title">🔍 Search Filter</h2>
+    <div class="ds-preview" style="padding:0">
+      <div class="search-filter">
+        <div class="search-filter__container">
+          <div class="search-filter__fields">
+            <div class="search-filter__field full">
+              <label class="search-filter__label">Tìm kiếm</label>
+              <input class="search-filter__input" type="text" placeholder="Tên NV, mã, email...">
+            </div>
+            <div class="search-filter__field select">
+              <label class="search-filter__label">Phòng ban</label>
+              <select class="search-filter__select">
+                <option>— Tất cả —</option>
+                <option>Phòng IT</option>
+              </select>
+            </div>
+            <div class="search-filter__field select">
+              <label class="search-filter__label">Trạng thái</label>
+              <select class="search-filter__select">
+                <option>Tất cả</option>
+                <option selected>Đang làm</option>
+              </select>
+            </div>
+            <div class="search-filter__actions">
+              <button class="btn btn-primary">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Tìm
+              </button>
+              <button class="btn btn-ghost">Xóa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 13. PAGINATION ── -->
+  <section id="pagination" class="ds-section">
+    <h2 class="ds-section-title">📄 Pagination</h2>
+    <div class="ds-preview" style="padding:0">
+      <div class="data-table" style="border-radius:var(--r-lg)">
+        <div class="pagination">
+          <div class="pagination-info">Hiển thị 1–10 / 42 bản ghi</div>
+          <div class="pagination-controls">
+            <button class="page-btn" disabled><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <span style="padding:0 var(--sp-1);color:var(--gray-400)">...</span>
+            <button class="page-btn">5</button>
+            <button class="page-btn"><svg viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 14. ALERTS ── -->
+  <section id="alerts" class="ds-section">
+    <h2 class="ds-section-title">🔔 Alert / Notice</h2>
+    <div class="ds-preview">
+      <div class="alert alert-error"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span>Tên đăng nhập hoặc mật khẩu không đúng.</span></div>
+      <div class="alert alert-success"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg><span>Thêm nhân viên thành công.</span></div>
+      <div class="alert alert-warning"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Nhân viên có hợp đồng ACTIVE đang hoạt động.</span></div>
+      <div class="alert alert-info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Mã nhân viên được tự sinh — không chỉnh sửa thủ công.</span></div>
+    </div>
+  </section>
+
+  <!-- ── 15. MODAL ── -->
+  <section id="modal" class="ds-section">
+    <h2 class="ds-section-title">💬 Modal xác nhận</h2>
+    <div class="ds-preview gray">
+      <div class="modal-overlay">
+        <div class="modal">
+          <div class="modal-title">Xác nhận vô hiệu hóa</div>
+          <div class="modal-desc">Vô hiệu hóa nhân viên <strong>Trần Thị C</strong>? Dữ liệu vẫn được giữ lại (soft delete).</div>
+          <div class="modal-actions">
+            <button class="btn btn-ghost">Hủy</button>
+            <button class="btn btn-error">Xác nhận</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 16. STAT CARD ── -->
+  <section id="stat-card" class="ds-section">
+    <h2 class="ds-section-title">📈 Stat Card</h2>
+    <div class="ds-preview gray">
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-icon blue"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div><div class="stat-value">42</div><div class="stat-label">Nhân viên</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+          <div><div class="stat-value">6</div><div class="stat-label">Phòng ban</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>
+          <div><div class="stat-value">38</div><div class="stat-label">Hợp đồng</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div><div class="stat-value">5</div><div class="stat-label">Loại phụ cấp</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 17. PAGE HEADER ── -->
+  <section id="page-header" class="ds-section">
+    <h2 class="ds-section-title">📋 Page Header</h2>
+    <div class="ds-preview">
+      <div class="page-header">
+        <div class="page-header__content">
+          <div>
+            <h1 class="page-header__title">Danh sách Nhân viên</h1>
+            <p class="page-header__subtitle">Quản lý toàn bộ hồ sơ nhân viên trong tổ chức</p>
+          </div>
+          <div class="page-header__actions">
+            <button class="btn btn-ghost">Xuất Excel</button>
+            <button class="btn btn-primary">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Thêm nhân viên
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 18. BREADCRUMB ── -->
+  <section id="breadcrumb" class="ds-section">
+    <h2 class="ds-section-title">🧭 Breadcrumb</h2>
+    <div class="ds-preview">
+      <div class="breadcrumb">
+        <a href="#">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="#">Nhân viên</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="#">Trần Thị C</a>
+        <span class="breadcrumb-sep">/</span>
+        <span>Hợp đồng</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 19. TABS ── -->
+  <section id="tabs" class="ds-section">
+    <h2 class="ds-section-title">🗂️ Tabs</h2>
+    <div class="ds-preview" style="padding:0">
+      <div class="card" style="border-radius:var(--r-lg)">
+        <div class="tabs-nav">
+          <button class="tab-btn active">Thông tin cá nhân</button>
+          <button class="tab-btn">Cập nhật liên lạc</button>
+        </div>
+        <div style="padding:var(--sp-6);font-size:var(--text-sm);color:var(--gray-500)">
+          Nội dung tab đang hiển thị...
+        </div>
+      </div>
+    </div>
+    <div class="ds-desc" style="margin-top:var(--sp-2)">Dùng cho trang Profile nhân viên — 2 tab: Xem thông tin / Cập nhật SĐT & địa chỉ.</div>
+  </section>
+
+  <!-- ── 20. SCREEN MAP ── -->
+  <section id="screen-map" class="ds-section">
+    <h2 class="ds-section-title">🗺️ Screen Map — Component Usage</h2>
+    <table class="usage-table">
+      <thead>
+        <tr>
+          <th>Màn hình</th>
+          <th>Role</th>
+          <th>Components chính</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>01-login</code></td><td>ALL</td><td>form-input, btn-primary, alert-error, btn-ghost</td></tr>
+        <tr><td><code>02-dashboard</code></td><td>HR_MANAGER</td><td>navbar, sidebar, stat-card × 4, data-table, btn-primary</td></tr>
+        <tr><td><code>03-employee-list</code></td><td>HR_MANAGER</td><td>page-header, search-filter, data-table, badge, action-btn, pagination</td></tr>
+        <tr><td><code>04-employee-form</code></td><td>HR_MANAGER</td><td>breadcrumb, page-header, card × 2, form-group, btn-primary, btn-ghost, alert-info</td></tr>
+        <tr><td><code>05-employee-profile</code></td><td>EMPLOYEE</td><td>navbar, sidebar (4 items), profile-banner, tabs, info-grid, alert-info</td></tr>
+        <tr><td><code>06-contract-list</code></td><td>HR_MANAGER + EMPLOYEE</td><td>breadcrumb, page-header, card (contract), badge × 3, btn-warning, btn-error, modal</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+</body>
+</html>

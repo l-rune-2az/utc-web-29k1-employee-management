@@ -1,0 +1,159 @@
+@model DepartmentIndexViewModel
+@{
+    ViewData["Title"] = "Quản lý Phòng ban";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Quản lý Phòng ban</h4>
+    <button id="deptCreateBtn" type="button" class="btn btn-primary">+ Thêm phòng ban</button>
+</div>
+
+@* Form tìm kiếm — khi submit sẽ GET /Department?keyword=... *@
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-4">
+        <input type="text" name="keyword" value="@Model.SearchKeyword"
+               class="form-control" placeholder="Tìm theo tên hoặc mã phòng ban..." />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Tìm kiếm</button>
+        @if (!string.IsNullOrWhiteSpace(Model.SearchKeyword))
+        {
+            <a asp-action="Index" class="btn btn-icon btn-outline-secondary" title="Xóa bộ lọc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </a>
+        }
+    </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="">
+                <tr>
+                    <th>Mã PB</th>
+                    <th>Tên phòng ban</th>
+                    <th>Phòng ban cha</th>
+                    <th>Mô tả</th>
+                    <th>Trạng thái</th>
+                    <th style="width:108px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var dept in Model.Departments)
+                {
+                    <tr>
+                        <td><code>@dept.Code</code></td>
+                        <td class="fw-semibold">@dept.Name</td>
+                        <td>@(dept.Parent?.Name ?? "--")</td>
+                        <td class="text-muted">@(dept.Description ?? "--")</td>
+                        <td>
+                            <span class="badge @(dept.Status == "ACTIVE" ? "badge-active" : "badge-inactive")">
+                                @(dept.Status == "ACTIVE" ? "Hoạt động" : "Không HĐ")
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@dept.Id"
+                               class="btn btn-icon btn-outline-secondary" title="Xem chi tiết">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </a>
+                            <button type="button" class="btn btn-icon btn-outline-primary deptEditBtn" title="Sửa"
+                                    data-id="@dept.Id" data-code="@dept.Code" data-name="@dept.Name"
+                                    data-parent-id="@(dept.ParentId?.ToString() ?? "")" data-desc="@(dept.Description ?? "")">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            <form asp-action="ToggleStatus" asp-route-id="@dept.Id"
+                                  method="post" class="toggle-form"
+                                  onsubmit="return confirm('@(dept.Status == "ACTIVE" ? "Vô hiệu hóa phòng ban này?" : "Kích hoạt lại phòng ban này?")')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="toggle-btn @(dept.Status == "ACTIVE" ? "is-on" : "")"
+                                        title="@(dept.Status == "ACTIVE" ? "Đang hoạt động — nhấn để vô hiệu hóa" : "Đang tắt — nhấn để kích hoạt")">
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Departments.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-5">Dữ liệu trống</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData) {
+        { "Page", Model.Page }, { "TotalPages", Model.TotalPages },
+        { "TotalCount", Model.TotalCount }, { "PageSize", Model.PageSize }
+    })
+</div>
+
+<div class="modal fade" id="deptModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px">
+            <div class="modal-header"><h5 class="modal-title" id="deptModalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="deptForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deptId" name="Id" />
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Mã phòng ban <span class="text-danger">*</span></label>
+                            <input id="deptCode" name="Code" class="form-control" placeholder="VD: IT, HR" required />
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Tên phòng ban <span class="text-danger">*</span></label>
+                            <input id="deptName" name="Name" class="form-control" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Phòng ban cha</label>
+                            <select id="deptParentId" name="ParentId" class="form-select">
+                                @foreach (var opt in Model.ParentOptions)
+                                {
+                                    <option value="@opt.Value">@opt.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Mô tả</label>
+                            <textarea id="deptDesc" name="Description" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <button type="submit" id="deptSubmitBtn" class="btn btn-primary px-4">Lưu</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    var modal = new bootstrap.Modal(document.getElementById('deptModal'));
+    document.getElementById('deptCreateBtn').addEventListener('click', function () {
+        document.getElementById('deptModalTitle').textContent = 'Thêm phòng ban mới';
+        document.getElementById('deptForm').action = '@Url.Action("Create","Department")';
+        document.getElementById('deptId').value = '';
+        document.getElementById('deptCode').value = '';
+        document.getElementById('deptName').value = '';
+        document.getElementById('deptParentId').value = '';
+        document.getElementById('deptDesc').value = '';
+        document.getElementById('deptSubmitBtn').textContent = 'Lưu';
+        modal.show();
+    });
+    document.querySelectorAll('.deptEditBtn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('deptModalTitle').textContent = 'Chỉnh sửa phòng ban';
+            document.getElementById('deptForm').action = '@Url.Action("Edit","Department")/' + this.dataset.id;
+            document.getElementById('deptId').value = this.dataset.id;
+            document.getElementById('deptCode').value = this.dataset.code;
+            document.getElementById('deptName').value = this.dataset.name;
+            document.getElementById('deptParentId').value = this.dataset.parentId || '';
+            document.getElementById('deptDesc').value = this.dataset.desc;
+            document.getElementById('deptSubmitBtn').textContent = 'Cập nhật';
+            modal.show();
+        });
+    });
+}());
+</script>
+}

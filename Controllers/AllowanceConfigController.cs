@@ -63,48 +63,28 @@ public class AllowanceConfigController : BaseController
         });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(AllowanceConfigFormViewModel vm)
+    [HttpPost("api/allowance-configs")]
+    public async Task<IActionResult> Create([FromBody] AllowanceConfigFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _service.CreateAsync(vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Thêm loại phụ cấp thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, AllowanceConfigFormViewModel vm)
+    [HttpPut("api/allowance-configs/{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] AllowanceConfigFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _service.UpdateAsync(id, vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Cập nhật loại phụ cấp thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Deactivate(Guid id)
+    [HttpPatch("api/allowance-configs/{id:guid}/toggle")]
+    public async Task<IActionResult> Toggle(Guid id)
     {
-        string? error = await _service.DeactivateAsync(id, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Đã vô hiệu hóa loại phụ cấp!";
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleStatus(Guid id)
-    {
-        await _service.ToggleStatusAsync(id, CurrentUsername);
-        return RedirectToAction(nameof(Index));
+        string? error = await _service.ToggleStatusAsync(id, CurrentUsername);
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 }

@@ -1,5 +1,181 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AllowanceConfigIndexViewModel
 @{
+    ViewData["Title"] = "Danh mục Phụ cấp";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Danh mục Phụ cấp</h4>
+    <button id="cfgCreateBtn" type="button" class="btn btn-primary">+ Thêm loại phụ cấp</button>
+</div>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-4">
+        <input type="text" name="keyword" value="@Model.SearchKeyword"
+               class="form-control" placeholder="Tìm tên hoặc mã phụ cấp..." />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Tìm kiếm</button>
+        @if (!string.IsNullOrWhiteSpace(Model.SearchKeyword))
+        {
+            <a asp-action="Index" class="btn btn-icon btn-outline-secondary" title="Xóa bộ lọc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </a>
+        }
+    </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="">
+                <tr>
+                    <th>Mã</th>
+                    <th>Tên phụ cấp</th>
+                    <th>Mức mặc định</th>
+                    <th>Mô tả</th>
+                    <th>Trạng thái</th>
+                    <th style="width:108px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cfg in Model.AllowanceConfigs)
+                {
+                    <tr>
+                        <td><code>@cfg.Code</code></td>
+                        <td class="fw-semibold">@cfg.Name</td>
+                        <td>@(cfg.DefaultAmount.HasValue ? $"{cfg.DefaultAmount.Value:N0} ₫" : "--")</td>
+                        <td class="text-muted">@(cfg.Description ?? "--")</td>
+                        <td>
+                            <span class="badge @(cfg.Status == "ACTIVE" ? "badge-active" : "badge-inactive")">
+                                @(cfg.Status == "ACTIVE" ? "Hoạt động" : "Không HĐ")
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@cfg.Id"
+                               class="btn btn-icon btn-outline-secondary" title="Xem chi tiết">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </a>
+                            <button type="button" class="btn btn-icon btn-outline-primary cfgEditBtn" title="Sửa"
+                                    data-id="@cfg.Id" data-code="@cfg.Code" data-name="@cfg.Name"
+                                    data-amount="@cfg.DefaultAmount" data-desc="@(cfg.Description ?? "")">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            <form asp-action="ToggleStatus" asp-route-id="@cfg.Id"
+                                  method="post" class="toggle-form"
+                                  onsubmit="return confirm('@(cfg.Status == "ACTIVE" ? "Vô hiệu hóa loại phụ cấp này?" : "Kích hoạt lại loại phụ cấp này?")')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="toggle-btn @(cfg.Status == "ACTIVE" ? "is-on" : "")"
+                                        title="@(cfg.Status == "ACTIVE" ? "Đang hoạt động — nhấn để vô hiệu hóa" : "Đang tắt — nhấn để kích hoạt")">
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.AllowanceConfigs.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-5">Dữ liệu trống</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData) {
+        { "Page", Model.Page }, { "TotalPages", Model.TotalPages },
+        { "TotalCount", Model.TotalCount }, { "PageSize", Model.PageSize }
+    })
+</div>
+
+<div class="modal fade" id="cfgModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px">
+            <div class="modal-header"><h5 class="modal-title" id="cfgModalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <form id="cfgForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="cfgId" name="Id" />
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Mã phụ cấp <span class="text-danger">*</span></label>
+                            <input id="cfgCode" name="Code" class="form-control" placeholder="VD: MEAL, PHONE" required />
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Tên loại phụ cấp <span class="text-danger">*</span></label>
+                            <input id="cfgName" name="Name" class="form-control" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Mức mặc định (VNĐ)</label>
+                            <input id="cfgAmount" name="DefaultAmount" type="number" class="form-control" step="10000" min="0" placeholder="Để trống nếu không cố định" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Mô tả</label>
+                            <textarea id="cfgDesc" name="Description" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <button type="submit" id="cfgSubmitBtn" class="btn btn-primary px-4">Lưu</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const modal = new bootstrap.Modal(document.getElementById('cfgModal'));
+    document.getElementById('cfgCreateBtn').addEventListener('click', function () {
+        document.getElementById('cfgModalTitle').textContent = 'Thêm loại phụ cấp';
+        document.getElementById('cfgId').value = '';
+        document.getElementById('cfgCode').value = '';
+        document.getElementById('cfgName').value = '';
+        document.getElementById('cfgAmount').value = '';
+        document.getElementById('cfgDesc').value = '';
+        document.getElementById('cfgSubmitBtn').textContent = 'Lưu';
+        modal.show();
+    });
+    document.querySelectorAll('.cfgEditBtn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('cfgModalTitle').textContent = 'Chỉnh sửa loại phụ cấp';
+            document.getElementById('cfgId').value = this.dataset.id;
+            document.getElementById('cfgCode').value = this.dataset.code;
+            document.getElementById('cfgName').value = this.dataset.name;
+            document.getElementById('cfgAmount').value = this.dataset.amount !== 'undefined' && this.dataset.amount ? this.dataset.amount : '';
+            document.getElementById('cfgDesc').value = this.dataset.desc;
+            document.getElementById('cfgSubmitBtn').textContent = 'Cập nhật';
+            modal.show();
+        });
+    });
+    document.getElementById('cfgForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('cfgId').value;
+        const amountVal = document.getElementById('cfgAmount').value;
+        const payload = {
+            code: document.getElementById('cfgCode').value,
+            name: document.getElementById('cfgName').value,
+            defaultAmount: amountVal ? parseFloat(amountVal) : null,
+            description: document.getElementById('cfgDesc').value || null
+        };
+        const url = id ? '/api/allowance-configs/' + id : '/api/allowance-configs';
+        const method = id ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { window.location.reload(); }
+            else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+        } catch { alert('Có lỗi kết nối'); }
+    });
+    document.querySelectorAll('.toggle-form').forEach(function (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const parts = this.action.split('/');
+            const id = parts[parts.length - 1];
+            try {
+                const res = await fetch('/api/allowance-configs/' + id + '/toggle', { method: 'PATCH' });
+                if (res.ok) { window.location.reload(); }
+                else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+            } catch { alert('Có lỗi kết nối'); }
+        });
+    });
+}());
+</script>
 }

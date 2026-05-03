@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -26,15 +26,17 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 var app = builder.Build();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 
-EnsureDatabase.For.PostgresqlDatabase(connectionString);
+EnsureDatabase.For.SqlDatabase(connectionString);
 
 var upgrader = DeployChanges.To
-    .PostgresqlDatabase(connectionString)
+    .SqlDatabase(connectionString)
     .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
     .WithVariablesDisabled()
     .LogToConsole()

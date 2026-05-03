@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EmployeeManagement.Models.ViewModels;
 
+// ViewModel cho trang đăng nhập — chỉ chứa dữ liệu cần thiết cho form
 public class LoginViewModel
 {
     [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập")]

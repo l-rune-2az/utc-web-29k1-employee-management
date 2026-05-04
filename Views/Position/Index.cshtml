@@ -137,10 +137,9 @@
 @section Scripts {
 <script>
 (function () {
-    var modal = new bootstrap.Modal(document.getElementById('posModal'));
+    const modal = new bootstrap.Modal(document.getElementById('posModal'));
     document.getElementById('posCreateBtn').addEventListener('click', function () {
         document.getElementById('posModalTitle').textContent = 'Thêm chức vụ mới';
-        document.getElementById('posForm').action = '@Url.Action("Create","Position")';
         document.getElementById('posId').value = '';
         document.getElementById('posCode').value = '';
         document.getElementById('posName').value = '';
@@ -152,7 +151,6 @@
     document.querySelectorAll('.posEditBtn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.getElementById('posModalTitle').textContent = 'Chỉnh sửa chức vụ';
-            document.getElementById('posForm').action = '@Url.Action("Edit","Position")/' + this.dataset.id;
             document.getElementById('posId').value = this.dataset.id;
             document.getElementById('posCode').value = this.dataset.code;
             document.getElementById('posName').value = this.dataset.name;
@@ -160,6 +158,35 @@
             document.getElementById('posDesc').value = this.dataset.desc;
             document.getElementById('posSubmitBtn').textContent = 'Cập nhật';
             modal.show();
+        });
+    });
+    document.getElementById('posForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('posId').value;
+        const payload = {
+            code: document.getElementById('posCode').value,
+            name: document.getElementById('posName').value,
+            level: document.getElementById('posLevel').value,
+            description: document.getElementById('posDesc').value || null
+        };
+        const url = id ? '/api/positions/' + id : '/api/positions';
+        const method = id ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { window.location.reload(); }
+            else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+        } catch { alert('Có lỗi kết nối'); }
+    });
+    document.querySelectorAll('.toggle-form').forEach(function (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const parts = this.action.split('/');
+            const id = parts[parts.length - 1];
+            try {
+                const res = await fetch('/api/positions/' + id + '/toggle', { method: 'PATCH' });
+                if (res.ok) { window.location.reload(); }
+                else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+            } catch { alert('Có lỗi kết nối'); }
         });
     });
 }());

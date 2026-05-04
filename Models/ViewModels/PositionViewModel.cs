@@ -25,7 +25,7 @@ public class PositionFormViewModel
     [Display(Name = "Cấp bậc")]
     public string Level { get; set; } = "JUNIOR";
 
-    // Danh sách cấp bậc để hiển thị trong dropdown
+    
     public List<SelectListItem> LevelOptions { get; set; } = new()
     {
         new SelectListItem("Junior (Mới vào)", "JUNIOR"),

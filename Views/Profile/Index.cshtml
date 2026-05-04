@@ -1,70 +1,41 @@
 @model Employee
 @{
     ViewData["Title"] = "Hồ sơ cá nhân";
-    var contracts = ViewBag.Contracts as List<EmployeeManagement.Models.Entities.Contract> ?? new();
+    var contracts  = ViewBag.Contracts  as List<EmployeeManagement.Models.Entities.Contract>          ?? new();
     var allowances = ViewBag.Allowances as List<EmployeeManagement.Models.Entities.EmployeeAllowance> ?? new();
     var dependents = ViewBag.Dependents as List<EmployeeManagement.Models.Entities.EmployeeDependent> ?? new();
 }
 
-<h4 class="mb-4">Hồ sơ cá nhân</h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Hồ sơ cá nhân</h4>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#contactModal">Cập nhật liên hệ</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#pwdModal">Đổi mật khẩu</button>
+    </div>
+</div>
 
 <div class="row g-4">
-    @* Thông tin cơ bản *@
     <div class="col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-primary text-white fw-bold">Thông tin cơ bản</div>
             <div class="card-body">
                 <table class="table table-borderless mb-0">
-                    <tr>
-                        <td class="text-muted" style="width:40%">Mã nhân viên</td>
-                        <td><code class="fw-bold">@Model.Code</code></td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Họ và tên</td>
-                        <td class="fw-semibold">@Model.FullName</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Giới tính</td>
-                        <td>@(Model.Gender == "MALE" ? "Nam" : Model.Gender == "FEMALE" ? "Nữ" : "Khác")</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Ngày sinh</td>
-                        <td>@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd/MM/yyyy") : "--")</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">CMND/CCCD</td>
-                        <td>@(Model.IdCard ?? "--")</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Email</td>
-                        <td>@Model.Email</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Điện thoại</td>
-                        <td>@(Model.Phone ?? "--")</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Địa chỉ</td>
-                        <td>@(Model.Address ?? "--")</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Ngày vào làm</td>
-                        <td>@(Model.HireDate.HasValue ? Model.HireDate.Value.ToString("dd/MM/yyyy") : "--")</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Phòng ban</td>
-                        <td>@(Model.Department?.Name ?? "--")</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Chức vụ</td>
-                        <td>@(Model.Position?.Name ?? "--")</td>
-                    </tr>
+                    <tr><td class="text-muted" style="width:40%">Mã nhân viên</td><td><code class="fw-bold">@Model.Code</code></td></tr>
+                    <tr><td class="text-muted">Họ và tên</td><td class="fw-semibold">@Model.FullName</td></tr>
+                    <tr><td class="text-muted">Giới tính</td><td>@(Model.Gender == "MALE" ? "Nam" : Model.Gender == "FEMALE" ? "Nữ" : "Khác")</td></tr>
+                    <tr><td class="text-muted">Ngày sinh</td><td id="dobDisplay">@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd/MM/yyyy") : "--")</td></tr>
+                    <tr><td class="text-muted">CMND/CCCD</td><td>@(Model.IdCard ?? "--")</td></tr>
+                    <tr><td class="text-muted">Email</td><td>@Model.Email</td></tr>
+                    <tr><td class="text-muted">Điện thoại</td><td id="phoneDisplay">@(Model.Phone ?? "--")</td></tr>
+                    <tr><td class="text-muted">Địa chỉ</td><td id="addressDisplay">@(Model.Address ?? "--")</td></tr>
+                    <tr><td class="text-muted">Ngày vào làm</td><td>@(Model.HireDate.HasValue ? Model.HireDate.Value.ToString("dd/MM/yyyy") : "--")</td></tr>
+                    <tr><td class="text-muted">Phòng ban</td><td>@(Model.Department?.Name ?? "--")</td></tr>
+                    <tr><td class="text-muted">Chức vụ</td><td>@(Model.Position?.Name ?? "--")</td></tr>
                 </table>
             </div>
         </div>
     </div>
 
-    @* Hợp đồng *@
     <div class="col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-warning text-dark fw-bold">Hợp đồng lao động</div>
@@ -83,66 +54,48 @@
                                     <td>@(c.ContractType switch { "PROBATION" => "Thử việc", "SEASONAL" => "Thời vụ", _ => "Chính thức" })</td>
                                     <td>@c.StartDate.ToString("dd/MM/yyyy")</td>
                                     <td>
-                                        @{
-                                            var _cBadge = c.Status switch { "ACTIVE" => "badge-active", "EXPIRED" => "badge-expired", _ => "badge-terminated" };
-                                            var _cTxt   = c.Status switch { "ACTIVE" => "Hiệu lực", "EXPIRED" => "Hết hạn", _ => "Đã chấm dứt" };
-                                        }
-                                        <span class="badge @_cBadge">@_cTxt</span>
+                                        @{ var badge = c.Status switch { "ACTIVE" => "badge-active", "EXPIRED" => "badge-expired", _ => "badge-terminated" }; }
+                                        <span class="badge @badge">@(c.Status switch { "ACTIVE" => "Hiệu lực", "EXPIRED" => "Hết hạn", _ => "Đã chấm dứt" })</span>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 }
-                else
-                {
-                    <p class="text-muted text-center p-3">Chưa có hợp đồng</p>
-                }
+                else { <p class="text-muted text-center p-3">Chưa có hợp đồng</p> }
             </div>
         </div>
     </div>
 
-    @* Phụ cấp *@
     <div class="col-md-6">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-success text-white fw-bold">Phụ cấp</div>
             <div class="card-body p-0">
-                @if (allowances.Any())
+                @if (allowances.Any(a => a.Status == "ACTIVE"))
                 {
                     <table class="table table-sm mb-0">
-                        <thead class="table-light">
-                            <tr><th>Loại phụ cấp</th><th>Số tiền</th></tr>
-                        </thead>
+                        <thead class="table-light"><tr><th>Loại phụ cấp</th><th>Số tiền</th></tr></thead>
                         <tbody>
                             @foreach (var a in allowances.Where(a => a.Status == "ACTIVE"))
                             {
-                                <tr>
-                                    <td>@a.AllowanceConfig?.Name</td>
-                                    <td>@a.Amount.ToString("N0") ₫</td>
-                                </tr>
+                                <tr><td>@a.AllowanceConfig?.Name</td><td>@a.Amount.ToString("N0") ₫</td></tr>
                             }
                         </tbody>
                     </table>
                 }
-                else
-                {
-                    <p class="text-muted text-center p-3">Chưa có phụ cấp</p>
-                }
+                else { <p class="text-muted text-center p-3">Chưa có phụ cấp</p> }
             </div>
         </div>
     </div>
 
-    @* Người phụ thuộc *@
     <div class="col-md-6">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-info text-white fw-bold">Người phụ thuộc</div>
             <div class="card-body p-0">
-                @if (dependents.Any())
+                @if (dependents.Any(d => d.Status == "ACTIVE"))
                 {
                     <table class="table table-sm mb-0">
-                        <thead class="table-light">
-                            <tr><th>Họ và tên</th><th>Quan hệ</th><th>Ngày sinh</th></tr>
-                        </thead>
+                        <thead class="table-light"><tr><th>Họ và tên</th><th>Quan hệ</th><th>Ngày sinh</th></tr></thead>
                         <tbody>
                             @foreach (var d in dependents.Where(d => d.Status == "ACTIVE"))
                             {
@@ -155,11 +108,94 @@
                         </tbody>
                     </table>
                 }
-                else
-                {
-                    <p class="text-muted text-center p-3">Chưa có người phụ thuộc</p>
-                }
+                else { <p class="text-muted text-center p-3">Chưa có người phụ thuộc</p> }
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="contactModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px">
+            <div class="modal-header"><h5 class="modal-title">Cập nhật thông tin liên hệ</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label">Ngày sinh</label>
+                    <input id="contactDob" type="date" class="form-control" value="@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("yyyy-MM-dd") : "")" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Số điện thoại</label>
+                    <input id="contactPhone" type="text" class="form-control" value="@(Model.Phone ?? "")" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Địa chỉ</label>
+                    <input id="contactAddress" type="text" class="form-control" value="@(Model.Address ?? "")" />
+                </div>
+                <div class="d-flex gap-2 pt-2 border-top">
+                    <button id="contactSaveBtn" type="button" class="btn btn-primary px-4">Lưu</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="pwdModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px">
+            <div class="modal-header"><h5 class="modal-title">Đổi mật khẩu</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu hiện tại</label>
+                    <input id="pwdCurrent" type="password" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu mới <span class="text-muted" style="font-size:12px">(ít nhất 6 ký tự)</span></label>
+                    <input id="pwdNew" type="password" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Xác nhận mật khẩu mới</label>
+                    <input id="pwdConfirm" type="password" class="form-control" />
+                </div>
+                <div class="d-flex gap-2 pt-2 border-top">
+                    <button id="pwdSaveBtn" type="button" class="btn btn-primary px-4">Đổi mật khẩu</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    document.getElementById('contactSaveBtn').addEventListener('click', async function () {
+        const payload = {
+            phone:       document.getElementById('contactPhone').value || null,
+            address:     document.getElementById('contactAddress').value || null,
+            dateOfBirth: document.getElementById('contactDob').value || null
+        };
+        try {
+            const res = await fetch('/api/profile/contact', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { window.location.reload(); }
+            else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+        } catch { alert('Có lỗi kết nối'); }
+    });
+
+    document.getElementById('pwdSaveBtn').addEventListener('click', async function () {
+        const newPwd     = document.getElementById('pwdNew').value;
+        const confirmPwd = document.getElementById('pwdConfirm').value;
+        if (newPwd !== confirmPwd) { alert('Mật khẩu xác nhận không khớp'); return; }
+        const payload = {
+            currentPassword: document.getElementById('pwdCurrent').value,
+            newPassword:     newPwd
+        };
+        try {
+            const res = await fetch('/api/account/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { alert('Đổi mật khẩu thành công!'); bootstrap.Modal.getInstance(document.getElementById('pwdModal')).hide(); }
+            else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+        } catch { alert('Có lỗi kết nối'); }
+    });
+}());
+</script>
+}

@@ -8,10 +8,12 @@ namespace EmployeeManagement.Services;
 public class EmployeeService : IEmployeeService
 {
     private readonly IEmployeeRepository _repo;
+    private readonly IUserRepository _userRepo;
 
-    public EmployeeService(IEmployeeRepository repo)
+    public EmployeeService(IEmployeeRepository repo, IUserRepository userRepo)
     {
         _repo = repo;
+        _userRepo = userRepo;
     }
 
     public async Task<List<Employee>> SearchAsync(string? keyword, Guid? deptId, string? status)
@@ -21,7 +23,7 @@ public class EmployeeService : IEmployeeService
 
     public async Task<string?> CreateAsync(EmployeeFormViewModel vm, string createdBy)
     {
-        // Kiểm tra email trùng
+        
         if (!string.IsNullOrWhiteSpace(vm.Email))
         {
             Employee? emailExists = await _repo.GetByEmailAsync(vm.Email.Trim().ToLower());
@@ -29,7 +31,7 @@ public class EmployeeService : IEmployeeService
                 return $"Email '{vm.Email}' đã được sử dụng";
         }
 
-        // Kiểm tra CMND/CCCD trùng
+        
         if (!string.IsNullOrWhiteSpace(vm.IdCard))
         {
             Employee? idCardExists = await _repo.GetByIdCardAsync(vm.IdCard.Trim());
@@ -40,8 +42,8 @@ public class EmployeeService : IEmployeeService
         DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
         int countToday = await _repo.CountByDateAsync(today);
 
-        // Sinh mã nhân viên: NV + YYMMDD + số thứ tự 3 chữ số
-        // Ví dụ: NV26042800001 (ngày 28/04/2026, nhân viên thứ 1)
+        
+        
         string code = $"NV{today:yyMMdd}{(countToday + 1):D3}";
 
         Employee employee = new Employee
@@ -66,6 +68,17 @@ public class EmployeeService : IEmployeeService
 
         await _repo.AddAsync(employee);
         await _repo.SaveChangesAsync();
+
+        await _userRepo.AddAsync(new Users
+        {
+            Username     = employee.Code,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(employee.Code),
+            Role         = UserRole.Employee.ToValue(),
+            EmployeeId   = employee.Id,
+            Status       = UserStatus.Active.ToValue(),
+            CreatedAt    = DateTime.UtcNow
+        });
+        await _userRepo.SaveChangesAsync();
         return null;
     }
 
@@ -74,7 +87,7 @@ public class EmployeeService : IEmployeeService
         Employee? employee = await _repo.GetByIdAsync(id);
         if (employee == null) return "Không tìm thấy nhân viên";
 
-        // Kiểm tra email mới có trùng với nhân viên khác không
+        
         Employee? emailExists = await _repo.GetByEmailAsync(vm.Email.Trim().ToLower());
         if (emailExists != null && emailExists.Id != id)
             return $"Email '{vm.Email}' đã được sử dụng";
@@ -98,6 +111,22 @@ public class EmployeeService : IEmployeeService
         employee.PositionId = vm.PositionId;
         employee.UpdatedBy = updatedBy;
         employee.UpdatedAt = DateTime.UtcNow;
+
+        await _repo.UpdateAsync(employee);
+        await _repo.SaveChangesAsync();
+        return null;
+    }
+
+    public async Task<string?> UpdateContactAsync(Guid id, string? phone, string? address, DateOnly? dateOfBirth, string updatedBy)
+    {
+        Employee? employee = await _repo.GetByIdAsync(id);
+        if (employee == null) return "Không tìm thấy nhân viên";
+
+        employee.Phone       = phone?.Trim();
+        employee.Address     = address?.Trim();
+        employee.DateOfBirth = dateOfBirth;
+        employee.UpdatedBy   = updatedBy;
+        employee.UpdatedAt   = DateTime.UtcNow;
 
         await _repo.UpdateAsync(employee);
         await _repo.SaveChangesAsync();

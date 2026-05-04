@@ -58,53 +58,33 @@ public class PositionController : BaseController
         int total = all.Count;
         return View(new PositionIndexViewModel
         {
-            Positions  = all.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+            Positions     = all.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
             SearchKeyword = keyword, Page = page, PageSize = pageSize, TotalCount = total
         });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(PositionFormViewModel vm)
+    [HttpPost("api/positions")]
+    public async Task<IActionResult> Create([FromBody] PositionFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _service.CreateAsync(vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Thêm chức vụ thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, PositionFormViewModel vm)
+    [HttpPut("api/positions/{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] PositionFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _service.UpdateAsync(id, vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Cập nhật chức vụ thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Deactivate(Guid id)
+    [HttpPatch("api/positions/{id:guid}/toggle")]
+    public async Task<IActionResult> Toggle(Guid id)
     {
-        string? error = await _service.DeactivateAsync(id, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Đã vô hiệu hóa chức vụ!";
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleStatus(Guid id)
-    {
-        await _service.ToggleStatusAsync(id, CurrentUsername);
-        return RedirectToAction(nameof(Index));
+        string? error = await _service.ToggleStatusAsync(id, CurrentUsername);
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 }

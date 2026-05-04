@@ -7,7 +7,6 @@ using EmployeeManagement.Services;
 
 namespace EmployeeManagement.Controllers;
 
-// Chỉ HR_MANAGER mới được quản lý phòng ban
 [Authorize(Roles = "HR_MANAGER")]
 public class DepartmentController : BaseController
 {
@@ -70,7 +69,7 @@ public class DepartmentController : BaseController
             .ToList();
         parentOpts.Insert(0, new SelectListItem("-- Không có --", ""));
 
-        DepartmentIndexViewModel vm = new DepartmentIndexViewModel
+        return View(new DepartmentIndexViewModel
         {
             Departments   = paged,
             SearchKeyword = keyword,
@@ -78,61 +77,37 @@ public class DepartmentController : BaseController
             PageSize      = pageSize,
             TotalCount    = total,
             ParentOptions = parentOpts
-        };
-        return View(vm);
+        });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(DepartmentFormViewModel vm)
+    [HttpPost("api/departments")]
+    public async Task<IActionResult> Create([FromBody] DepartmentFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _service.CreateAsync(vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Thêm phòng ban thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, DepartmentFormViewModel vm)
+    [HttpPut("api/departments/{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] DepartmentFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _service.UpdateAsync(id, vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Cập nhật phòng ban thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Deactivate(Guid id)
+    [HttpPatch("api/departments/{id:guid}/toggle")]
+    public async Task<IActionResult> Toggle(Guid id)
     {
-        string? error = await _service.DeactivateAsync(id, CurrentUsername);
-        if (error != null) TempData["Error"] = error;
-        else TempData["Success"] = "Đã vô hiệu hóa phòng ban!";
-        return RedirectToAction(nameof(Index));
+        string? error = await _service.ToggleStatusAsync(id, CurrentUsername);
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleStatus(Guid id)
-    {
-        await _service.ToggleStatusAsync(id, CurrentUsername);
-        return RedirectToAction(nameof(Index));
-    }
-
-    // Helper: điền danh sách phòng ban cha vào dropdown
     private async Task PopulateParentOptions(DepartmentFormViewModel vm, Guid? excludeId = null)
     {
         List<Department> departments = await _service.GetActiveAsync();
-        // Loại trừ chính nó khỏi danh sách phòng ban cha (không cho phép tự tham chiếu)
         if (excludeId.HasValue)
             departments = departments.Where(d => d.Id != excludeId.Value).ToList();
 

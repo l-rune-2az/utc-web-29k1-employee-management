@@ -5,10 +5,9 @@ using EmployeeManagement.Models.Enums;
 
 namespace EmployeeManagement.Repositories;
 
-// Lớp thực thi — chứa code truy vấn database thực tế
 public class DepartmentRepository : IDepartmentRepository
 {
-    // _context là cầu nối đến database
+    
     private readonly ApplicationDbContext _context;
 
     public DepartmentRepository(ApplicationDbContext context)
@@ -18,7 +17,7 @@ public class DepartmentRepository : IDepartmentRepository
 
     public async Task<List<Department>> GetAllAsync()
     {
-        // Include(d => d.Parent) — nạp thêm thông tin phòng ban cha cùng 1 lần truy vấn
+        
         return await _context.Departments
             .Include(d => d.Parent)
             .OrderBy(d => d.Name)

@@ -78,10 +78,12 @@ CREATE TABLE users (
 
     CONSTRAINT pk_users          PRIMARY KEY (id),
     CONSTRAINT uq_users_username UNIQUE (username),
-    CONSTRAINT uq_users_employee UNIQUE (employee_id),
     CONSTRAINT chk_users_role    CHECK (role   IN ('HR_MANAGER', 'EMPLOYEE')),
     CONSTRAINT chk_users_status  CHECK (status IN ('ACTIVE', 'INACTIVE', 'LOCKED'))
 );
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'uix_users_employee' AND object_id = OBJECT_ID('users'))
+    CREATE UNIQUE INDEX uix_users_employee ON users(employee_id) WHERE employee_id IS NOT NULL;
 
 IF OBJECT_ID('contract', 'U') IS NULL
 CREATE TABLE contract (

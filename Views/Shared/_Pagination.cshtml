@@ -1,7 +1,4 @@
-@* Gọi: @await Html.PartialAsync("_Pagination", new ViewDataDictionary(ViewData) {
-       { "Page", Model.Page }, { "TotalPages", Model.TotalPages },
-       { "TotalCount", Model.TotalCount }, { "PageSize", Model.PageSize } })
-   Hoặc dùng trực tiếp các biến page/totalPages trong view *@
+
 @{
     int _p  = (int)(ViewData["Page"]  ?? 1);
     int _tp = (int)(ViewData["TotalPages"] ?? 1);

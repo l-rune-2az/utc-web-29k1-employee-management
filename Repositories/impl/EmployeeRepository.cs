@@ -25,7 +25,7 @@ public class EmployeeRepository : IEmployeeRepository
 
     public async Task<List<Employee>> SearchAsync(string? keyword, Guid? deptId, string? status)
     {
-        // IQueryable cho phép xây dựng câu truy vấn từng bước, chỉ chạy khi gọi ToListAsync()
+        
         IQueryable<Employee> query = _context.Employees
             .Include(e => e.Department)
             .Include(e => e.Position)
@@ -33,7 +33,7 @@ public class EmployeeRepository : IEmployeeRepository
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            // Tìm kiếm theo tên hoặc mã nhân viên
+            
             keyword = keyword.Trim().ToLower();
             query = query.Where(e =>
                 e.FullName.ToLower().Contains(keyword) ||
@@ -68,7 +68,7 @@ public class EmployeeRepository : IEmployeeRepository
         return await _context.Employees.FirstOrDefaultAsync(e => e.IdCard == idCard);
     }
 
-    // Đếm số nhân viên được tạo trong ngày — dùng để sinh mã NV
+    
     public async Task<int> CountByDateAsync(DateOnly date)
     {
         DateTime startOfDay = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);

@@ -1,10 +1,5 @@
 namespace EmployeeManagement.Models.Enums;
 
-// ============================================================
-// ENUMS + EXTENSION METHODS
-// Quy ước: PascalCase cho enum value, ToValue() trả về string DB
-// ============================================================
-
 public enum EmployeeStatus   { Active, Inactive }
 public enum DepartmentStatus { Active, Inactive }
 public enum PositionStatus   { Active, Inactive }
@@ -20,11 +15,6 @@ public enum ContractType   { Probation, Official, Seasonal }
 public enum SalaryType     { Gross, Net }
 public enum Relationship   { Spouse, Child, Parent }
 
-// ============================================================
-// EXTENSION METHODS — gọi như: status.ToValue(), role.ToValue()
-// FromValue nhận string? — tránh NullReferenceException khi dữ liệu DB null
-// ============================================================
-
 public static class EmployeeStatusExtensions
 {
     public static string ToValue(this EmployeeStatus s) => s switch
@@ -38,7 +28,7 @@ public static class EmployeeStatusExtensions
     {
         "ACTIVE"   => EmployeeStatus.Active,
         "INACTIVE" => EmployeeStatus.Inactive,
-        null       => EmployeeStatus.Active,   // default khi DB null
+        null       => EmployeeStatus.Active,
         _          => throw new ArgumentOutOfRangeException(nameof(v), v, null)
     };
 }

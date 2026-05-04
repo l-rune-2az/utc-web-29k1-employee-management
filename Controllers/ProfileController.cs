@@ -5,7 +5,6 @@ using EmployeeManagement.Services;
 
 namespace EmployeeManagement.Controllers;
 
-// Trang hồ sơ cá nhân — chỉ EMPLOYEE mới vào đây
 [Authorize(Roles = "EMPLOYEE")]
 public class ProfileController : BaseController
 {
@@ -26,7 +25,6 @@ public class ProfileController : BaseController
         _dependentService = dependentService;
     }
 
-    // GET: /Profile — Xem thông tin cá nhân
     public async Task<IActionResult> Index()
     {
         if (CurrentEmployeeId == null)

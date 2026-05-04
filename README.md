@@ -79,8 +79,8 @@ Hệ thống phục vụ **2 nhóm người dùng**:
 |-----------|-----------|------------|
 | Framework | ASP.NET Core 10 MVC | Chuẩn môn học, tách biệt rõ Controller / View |
 | Ngôn ngữ | C# | Mạnh về kiểu dữ liệu, phù hợp enterprise |
-| Database | SQL Server (LocalDB / Express / Full) | Tích hợp tốt với hệ sinh thái .NET, hỗ trợ đầy đủ T-SQL |
-| ORM | Entity Framework Core 10 (Microsoft.Data.SqlClient) | Viết truy vấn bằng C# thay SQL thủ công |
+| Database | PostgreSQL 15+ | Miễn phí, mạnh, hỗ trợ tốt UUID và kiểu dữ liệu phong phú |
+| ORM | Entity Framework Core 10 (Npgsql) | Viết truy vấn bằng C# thay SQL thủ công |
 | Migration | DbUp | Chạy file `.sql` tự động khi khởi động, không cần lệnh ef |
 | Frontend | Bootstrap 5, jQuery | Responsive, sẵn có, phù hợp sinh viên |
 | Xác thực | Cookie Authentication | Tích hợp sẵn trong ASP.NET Core, hỗ trợ `[Authorize]` |
@@ -94,10 +94,7 @@ Hệ thống phục vụ **2 nhóm người dùng**:
 ### Yêu cầu
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- SQL Server — một trong các lựa chọn sau:
-  - **LocalDB** — cài sẵn cùng Visual Studio (đơn giản nhất)
-  - **SQL Server Express** — [Tải tại đây](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (miễn phí)
-  - **SQL Server Full** — nếu đã có sẵn trên máy
+- [PostgreSQL 15+](https://www.postgresql.org/download/)
 
 ### Các bước
 
@@ -108,24 +105,23 @@ git clone <url>
 cd utc-web-29k1-employee-management
 ```
 
-**2. Cấu hình connection string**
+**2. Tạo database trống trong PostgreSQL**
 
-Mở `appsettings.json`, chọn **một trong ba** cấu hình phù hợp với máy:
-
-```jsonc
-// Tuỳ chọn A — SQL Server với SA account (port mặc định 1433)
-"DefaultConnection": "Server=localhost,1433;Database=hrms;User Id=sa;Password=<your_password>;TrustServerCertificate=True;"
-
-// Tuỳ chọn B — SQL Server Express (Windows Authentication)
-"DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=hrms;Trusted_Connection=True;TrustServerCertificate=True;"
-
-// Tuỳ chọn C — LocalDB (cài sẵn với Visual Studio)
-"DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=hrms;Trusted_Connection=True;TrustServerCertificate=True;"
+```sql
+CREATE DATABASE hrms;
 ```
 
-> **Lưu ý:** Không cần tạo database trước — DbUp sẽ tự động tạo database `hrms` nếu chưa tồn tại.
+**3. Cấu hình connection string**
 
-**3. Chạy ứng dụng**
+Mở `appsettings.json`, sửa `Username` và `Password` cho khớp máy của bạn:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Host=localhost;Port=5432;Database=hrms;Username=postgres;Password=postgres"
+}
+```
+
+**4. Chạy ứng dụng**
 
 ```bash
 dotnet run
@@ -137,7 +133,7 @@ Lần đầu chạy, **DbUp tự động** thực thi các file SQL trong `db/mi
 
 Không cần chạy `dotnet ef database update` hay bất kỳ lệnh thủ công nào.
 
-**4. Truy cập**
+**5. Truy cập**
 
 Mở trình duyệt: `http://localhost:5173`
 
@@ -271,7 +267,7 @@ Service Layer       ← validate, nghiệp vụ (sinh mã NV, BCrypt, soft delet
 Repository          ← truy vấn database qua DbContext (LINQ / EF Core)
     │
     ▼
-SQL Server
+PostgreSQL
     │  kết quả
     ▼
 Controller → ViewModel → View (.cshtml)

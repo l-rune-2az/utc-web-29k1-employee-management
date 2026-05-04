@@ -8,7 +8,7 @@ public class EmployeeFormViewModel
 {
     public Guid? Id { get; set; }
 
-    // Mã nhân viên — tự động sinh, chỉ hiển thị khi Edit
+    
     [Display(Name = "Mã nhân viên")]
     public string? Code { get; set; }
 
@@ -50,7 +50,7 @@ public class EmployeeFormViewModel
     [Display(Name = "Chức vụ")]
     public Guid? PositionId { get; set; }
 
-    // Dropdown options — được điền từ Controller
+    
     public List<SelectListItem> DepartmentOptions { get; set; } = new();
     public List<SelectListItem> PositionOptions { get; set; } = new();
 

@@ -8,7 +8,6 @@
     <button id="empCreateBtn" type="button" class="btn btn-primary">+ Thêm nhân viên</button>
 </div>
 
-@* Form tìm kiếm và lọc theo phòng ban, trạng thái *@
 <form method="get" class="row g-2 mb-4">
     <div class="col-md-4">
         <input type="text" name="keyword" value="@Model.SearchKeyword"
@@ -157,10 +156,9 @@
 @section Scripts {
 <script>
 (function () {
-    var modal = new bootstrap.Modal(document.getElementById('empModal'));
+    const modal = new bootstrap.Modal(document.getElementById('empModal'));
     document.getElementById('empCreateBtn').addEventListener('click', function () {
         document.getElementById('empModalTitle').textContent = 'Thêm nhân viên mới';
-        document.getElementById('empForm').action = '@Url.Action("Create","Employee")';
         ['empId','empName','empDob','empIdCard','empEmail','empPhone','empAddress','empHireDate'].forEach(function(id){ document.getElementById(id).value = ''; });
         document.getElementById('empGender').value = 'MALE';
         document.getElementById('empDeptId').value = '';
@@ -171,7 +169,6 @@
     document.querySelectorAll('.empEditBtn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.getElementById('empModalTitle').textContent = 'Chỉnh sửa nhân viên';
-            document.getElementById('empForm').action = '@Url.Action("Edit","Employee")/' + this.dataset.id;
             document.getElementById('empId').value = this.dataset.id;
             document.getElementById('empName').value = this.dataset.name;
             document.getElementById('empGender').value = this.dataset.gender;
@@ -185,6 +182,41 @@
             document.getElementById('empPositionId').value = this.dataset.positionid || '';
             document.getElementById('empSubmitBtn').textContent = 'Cập nhật';
             modal.show();
+        });
+    });
+    document.getElementById('empForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const id = document.getElementById('empId').value;
+        const payload = {
+            fullName: document.getElementById('empName').value,
+            gender: document.getElementById('empGender').value || null,
+            dateOfBirth: document.getElementById('empDob').value || null,
+            idCard: document.getElementById('empIdCard').value || null,
+            email: document.getElementById('empEmail').value,
+            phone: document.getElementById('empPhone').value || null,
+            address: document.getElementById('empAddress').value || null,
+            hireDate: document.getElementById('empHireDate').value || null,
+            deptId: document.getElementById('empDeptId').value || null,
+            positionId: document.getElementById('empPositionId').value || null
+        };
+        const url = id ? '/api/employees/' + id : '/api/employees';
+        const method = id ? 'PUT' : 'POST';
+        try {
+            const res = await fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { window.location.reload(); }
+            else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+        } catch { alert('Có lỗi kết nối'); }
+    });
+    document.querySelectorAll('.toggle-form').forEach(function (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const parts = this.action.split('/');
+            const id = parts[parts.length - 1];
+            try {
+                const res = await fetch('/api/employees/' + id + '/toggle', { method: 'PATCH' });
+                if (res.ok) { window.location.reload(); }
+                else { const d = await res.json(); alert(d.error || 'Có lỗi xảy ra'); }
+            } catch { alert('Có lỗi kết nối'); }
         });
     });
 }());

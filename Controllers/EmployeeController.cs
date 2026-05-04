@@ -38,18 +38,18 @@ public class EmployeeController : BaseController
         const int pageSize = 10;
         List<Employee> all = await _empService.SearchAsync(keyword, deptId, status);
         List<Department> departments = await _deptService.GetActiveAsync();
-
         List<Position> positions = await _posService.GetActiveAsync();
         int total = all.Count;
+
         EmployeeIndexViewModel vm = new EmployeeIndexViewModel
         {
-            Employees     = all.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
-            SearchKeyword = keyword,
-            FilterDeptId  = deptId,
-            FilterStatus  = status,
-            Page          = page,
-            PageSize      = pageSize,
-            TotalCount    = total,
+            Employees         = all.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+            SearchKeyword     = keyword,
+            FilterDeptId      = deptId,
+            FilterStatus      = status,
+            Page              = page,
+            PageSize          = pageSize,
+            TotalCount        = total,
             DepartmentOptions = departments.Select(d => new SelectListItem(d.Name, d.Id.ToString())).ToList(),
             PositionOptions   = positions.Select(p => new SelectListItem(p.Name, p.Id.ToString())).ToList()
         };
@@ -80,7 +80,7 @@ public class EmployeeController : BaseController
         Employee? emp = await _empService.GetByIdAsync(id);
         if (emp == null) return NotFound();
 
-        List<Contract> contracts  = await _contractService.GetByEmployeeIdAsync(id);
+        List<Contract> contracts           = await _contractService.GetByEmployeeIdAsync(id);
         List<EmployeeDependent> dependents = await _dependentService.GetByEmployeeIdAsync(id);
         List<EmployeeAllowance> allowances = await _allowanceService.GetByEmployeeIdAsync(id);
 
@@ -93,49 +93,29 @@ public class EmployeeController : BaseController
         });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(EmployeeFormViewModel vm)
+    [HttpPost("api/employees")]
+    public async Task<IActionResult> Create([FromBody] EmployeeFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _empService.CreateAsync(vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Thêm nhân viên thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, EmployeeFormViewModel vm)
+    [HttpPut("api/employees/{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] EmployeeFormViewModel vm)
     {
         if (!ModelState.IsValid)
-        {
-            TempData["Error"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
-        }
+            return BadRequest(new { error = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
         string? error = await _empService.UpdateAsync(id, vm, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Cập nhật nhân viên thành công!";
-        return RedirectToAction(nameof(Index));
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Deactivate(Guid id)
+    [HttpPatch("api/employees/{id:guid}/toggle")]
+    public async Task<IActionResult> Toggle(Guid id)
     {
-        string? error = await _empService.DeactivateAsync(id, CurrentUsername);
-        TempData[error != null ? "Error" : "Success"] = error ?? "Đã vô hiệu hóa nhân viên!";
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleStatus(Guid id)
-    {
-        await _empService.ToggleStatusAsync(id, CurrentUsername);
-        return RedirectToAction(nameof(Index));
+        string? error = await _empService.ToggleStatusAsync(id, CurrentUsername);
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
     }
 
     private async Task PopulateDropdowns(EmployeeFormViewModel vm)

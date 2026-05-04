@@ -33,7 +33,7 @@ public class HomeController : BaseController
         DateOnly today     = DateOnly.FromDateTime(DateTime.UtcNow);
         DateOnly in30Days  = today.AddDays(30);
 
-        // 6 tháng gần nhất (tháng 1 là tháng cũ nhất)
+        
         var now    = DateTime.UtcNow;
         var months = Enumerable.Range(0, 6)
             .Select(i => new DateTime(now.Year, now.Month, 1).AddMonths(-5 + i))
@@ -41,14 +41,14 @@ public class HomeController : BaseController
 
         var growthLabels  = months.Select(m => $"T{m.Month}/{m.Year % 100:D2}").ToList();
 
-        // Chart 1: tổng headcount tích lũy cuối mỗi tháng
+        
         var headcountData = months.Select(m =>
         {
             var endOfMonth = DateOnly.FromDateTime(m.AddMonths(1).AddDays(-1));
             return allEmployees.Count(e => e.HireDate.HasValue && e.HireDate.Value <= endOfMonth);
         }).ToList();
 
-        // Chart 2: tuyển mới theo từng phòng ban trong tháng (top 6 phòng ban có nhân viên)
+        
         var topDepts = allEmployees
             .Where(e => e.Department != null)
             .GroupBy(e => e.Department!.Name)

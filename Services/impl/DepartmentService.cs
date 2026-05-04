@@ -20,7 +20,7 @@ public class DepartmentService : IDepartmentService
 
     public async Task<string?> CreateAsync(DepartmentFormViewModel vm, string createdBy)
     {
-        // Kiểm tra mã phòng ban đã tồn tại chưa
+        
         Department? existing = await _repo.GetByCodeAsync(vm.Code.ToUpper());
         if (existing != null)
             return $"Mã phòng ban '{vm.Code}' đã tồn tại";
@@ -48,12 +48,12 @@ public class DepartmentService : IDepartmentService
         Department? dept = await _repo.GetByIdAsync(id);
         if (dept == null) return "Không tìm thấy phòng ban";
 
-        // Kiểm tra mã mới có trùng với phòng ban khác không
+        
         Department? existing = await _repo.GetByCodeAsync(vm.Code.ToUpper());
         if (existing != null && existing.Id != id)
             return $"Mã phòng ban '{vm.Code}' đã tồn tại";
 
-        // Không cho phép phòng ban tự làm cha của chính mình
+        
         if (vm.ParentId == id)
             return "Phòng ban không thể là phòng ban cha của chính nó";
 

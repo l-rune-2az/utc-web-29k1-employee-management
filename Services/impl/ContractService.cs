@@ -20,13 +20,16 @@ public class ContractService : IContractService
 
     public async Task<string?> CreateAsync(ContractFormViewModel vm, string createdBy)
     {
+        
         bool hasDuplicate = await _repo.HasContractOnDateAsync(vm.EmpId, vm.StartDate);
         if (hasDuplicate)
             return "Nhân viên đã có hợp đồng bắt đầu vào ngày này";
 
+        
         if (vm.EndDate.HasValue && vm.EndDate.Value < vm.StartDate)
             return "Ngày kết thúc phải sau ngày bắt đầu";
 
+        
         Contract? activeContract = await _repo.GetActiveByEmployeeIdAsync(vm.EmpId);
         if (activeContract != null)
         {
@@ -36,6 +39,7 @@ public class ContractService : IContractService
             await _repo.UpdateAsync(activeContract);
         }
 
+        
         int year = vm.StartDate.Year;
         int count = await _repo.CountByYearAsync(year);
         string contractNumber = $"HĐ-{year}-{(count + 1):D3}";

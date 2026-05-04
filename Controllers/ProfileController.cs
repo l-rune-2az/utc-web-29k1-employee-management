@@ -5,7 +5,6 @@ using EmployeeManagement.Services;
 
 namespace EmployeeManagement.Controllers;
 
-// Trang hồ sơ cá nhân — chỉ EMPLOYEE mới vào đây
 [Authorize(Roles = "EMPLOYEE")]
 public class ProfileController : BaseController
 {
@@ -20,13 +19,12 @@ public class ProfileController : BaseController
         IEmployeeAllowanceService allowanceService,
         IDependentService dependentService)
     {
-        _empService = empService;
-        _contractService = contractService;
+        _empService       = empService;
+        _contractService  = contractService;
         _allowanceService = allowanceService;
         _dependentService = dependentService;
     }
 
-    // GET: /Profile — Xem thông tin cá nhân
     public async Task<IActionResult> Index()
     {
         if (CurrentEmployeeId == null)
@@ -35,10 +33,21 @@ public class ProfileController : BaseController
         Employee? employee = await _empService.GetByIdAsync(CurrentEmployeeId.Value);
         if (employee == null) return NotFound();
 
-        ViewBag.Contracts = await _contractService.GetByEmployeeIdAsync(CurrentEmployeeId.Value);
+        ViewBag.Contracts  = await _contractService.GetByEmployeeIdAsync(CurrentEmployeeId.Value);
         ViewBag.Allowances = await _allowanceService.GetByEmployeeIdAsync(CurrentEmployeeId.Value);
         ViewBag.Dependents = await _dependentService.GetByEmployeeIdAsync(CurrentEmployeeId.Value);
 
         return View(employee);
     }
+
+    [HttpPatch("api/profile/contact")]
+    public async Task<IActionResult> UpdateContact([FromBody] UpdateContactRequest req)
+    {
+        if (CurrentEmployeeId == null) return Forbid();
+        string? error = await _empService.UpdateContactAsync(
+            CurrentEmployeeId.Value, req.Phone, req.Address, req.DateOfBirth, CurrentUsername);
+        return error != null ? BadRequest(new { error }) : Ok(new { success = true });
+    }
 }
+
+public record UpdateContactRequest(string? Phone, string? Address, DateOnly? DateOfBirth);

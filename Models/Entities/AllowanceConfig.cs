@@ -4,7 +4,6 @@ using EmployeeManagement.Models.Enums;
 
 namespace EmployeeManagement.Models.Entities;
 
-// Bảng danh mục loại phụ cấp (ăn trưa, điện thoại, xăng xe, v.v.)
 [Table("allowance_config")]
 public class AllowanceConfig
 {
@@ -25,7 +24,7 @@ public class AllowanceConfig
     [Column("description")]
     public string? Description { get; set; }
 
-    // Mức phụ cấp mặc định — null = không có mức cố định, thương lượng từng người
+    
     [Column("default_amount", TypeName = "numeric(15,2)")]
     public decimal? DefaultAmount { get; set; }
 

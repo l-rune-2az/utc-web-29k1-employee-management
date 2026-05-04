@@ -4,7 +4,6 @@ using EmployeeManagement.Models.Enums;
 
 namespace EmployeeManagement.Models.Entities;
 
-// Bảng trung tâm — lưu toàn bộ thông tin hồ sơ nhân viên
 [Table("employee")]
 public class Employee
 {
@@ -12,7 +11,7 @@ public class Employee
     [Column("id")]
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    // Mã nhân viên tự động sinh theo format: NVYYMMDD### (ví dụ: NV26010001)
+    
     [Required]
     [MaxLength(20)]
     [Column("code")]
@@ -23,7 +22,7 @@ public class Employee
     [Column("name")]
     public string FullName { get; set; } = string.Empty;
 
-    // MALE / FEMALE / OTHER
+    
     [MaxLength(10)]
     [Column("gender")]
     public string? Gender { get; set; }
@@ -31,7 +30,7 @@ public class Employee
     [Column("dob")]
     public DateOnly? DateOfBirth { get; set; }
 
-    // Số CMND/CCCD — unique
+    
     [MaxLength(20)]
     [Column("id_card")]
     public string? IdCard { get; set; }
@@ -51,11 +50,11 @@ public class Employee
     [Column("hire_date")]
     public DateOnly? HireDate { get; set; }
 
-    // Khóa ngoại — liên kết với phòng ban (không có FK trong DB, kiểm tra trong ứng dụng)
+    
     [Column("dept_id")]
     public Guid? DeptId { get; set; }
 
-    // Khóa ngoại — liên kết với chức vụ
+    
     [Column("position_id")]
     public Guid? PositionId { get; set; }
 
@@ -77,7 +76,7 @@ public class Employee
     [Column("updated_by")]
     public string? UpdatedBy { get; set; }
 
-    // Navigation properties
+    
     [ForeignKey("DeptId")]
     public Department? Department { get; set; }
 

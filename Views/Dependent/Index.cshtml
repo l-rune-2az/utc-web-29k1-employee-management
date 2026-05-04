@@ -37,7 +37,7 @@
         <table class="table table-hover mb-0">
             <thead class="">
                 <tr>
-                    @if (isHrManager) { <th>Nhân viên</th> }
+                    @if (isHrManager) { <th>Mã NV</th><th>Nhân viên</th> }
                     <th>Họ và tên</th>
                     <th>Mối quan hệ</th>
                     <th>Ngày sinh</th>
@@ -50,7 +50,7 @@
                 @foreach (var d in Model.Dependents)
                 {
                     <tr>
-                        @if (isHrManager) { <td>@d.Employee?.FullName</td> }
+                        @if (isHrManager) { <td><code>@d.Employee?.Code</code></td><td>@d.Employee?.FullName</td> }
                         <td class="fw-semibold">@d.FullName</td>
                         <td>@(d.Relationship switch { "SPOUSE" => "Vợ/Chồng", "CHILD" => "Con", "PARENT" => "Bố/Mẹ", _ => d.Relationship })</td>
                         <td>@(d.DateOfBirth.HasValue ? d.DateOfBirth.Value.ToString("dd/MM/yyyy") : "--")</td>
@@ -86,7 +86,7 @@
                 }
                 @if (!Model.Dependents.Any())
                 {
-                    <tr><td colspan="7" class="text-center text-muted py-5">Dữ liệu trống</td></tr>
+                    <tr><td colspan="@(isHrManager ? 8 : 5)" class="text-center text-muted py-5">Dữ liệu trống</td></tr>
                 }
             </tbody>
         </table>

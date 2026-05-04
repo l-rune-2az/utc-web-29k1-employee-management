@@ -39,7 +39,7 @@
         <p class="text-muted mb-0" style="font-size:14px">Xin chào, <strong>@User.Identity?.Name</strong>! Dưới đây là tổng quan nhân sự.</p>
     </div>
 
-    @* Stats Grid *@
+    
     <div class="row row-cols-2 row-cols-md-5 g-3 mb-4">
         <div class="col">
             <div class="stat-card">
@@ -98,7 +98,7 @@
         </div>
     </div>
 
-    @* Charts *@
+    
     <div class="row g-4 mb-4">
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm h-100">
@@ -124,7 +124,7 @@
         </div>
     </div>
 
-    @* Recent Employees *@
+    
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
             <h6 class="mb-0 fw-semibold">Nhân viên mới nhất</h6>
@@ -168,7 +168,7 @@
 }
 else
 {
-    @* EMPLOYEE: trang chào mừng đơn giản *@
+    
     <div class="mb-4">
         <h4 class="fw-bold mb-0">Xin chào, @User.Identity?.Name!</h4>
         <p class="text-muted">Chọn mục bên trái để xem thông tin của bạn.</p>
@@ -207,7 +207,7 @@ else
 
             const palette = ['#3b82f6','#10b981','#f59e0b','#ec4899','#8b5cf6','#06b6d4'];
 
-            // Chart 1 — Line / Area: headcount tích lũy
+            
             new Chart(document.getElementById('growthChart'), {
                 type: 'line',
                 data: {
@@ -233,7 +233,7 @@ else
                 }
             });
 
-            // Chart 2 — Stacked Bar: tuyển mới theo phòng ban
+            
             new Chart(document.getElementById('deptChart'), {
                 type: 'bar',
                 data: {

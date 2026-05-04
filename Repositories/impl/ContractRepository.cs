@@ -37,18 +37,21 @@ public class ContractRepository : IContractRepository
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
+    
     public async Task<Contract?> GetActiveByEmployeeIdAsync(Guid empId)
     {
         return await _context.Contracts
             .FirstOrDefaultAsync(c => c.EmpId == empId && c.Status == ContractStatus.Active.ToValue());
     }
 
+    
     public async Task<bool> HasContractOnDateAsync(Guid empId, DateOnly startDate, Guid? excludeId = null)
     {
         return await _context.Contracts
             .AnyAsync(c => c.EmpId == empId && c.StartDate == startDate && c.Id != excludeId);
     }
 
+    
     public async Task<int> CountByYearAsync(int year)
     {
         return await _context.Contracts

@@ -17,16 +17,16 @@ public class UserService : IUserService
     {
         Users? user = await _repo.GetByUsernameAsync(username);
 
-        // Tài khoản không tồn tại
+        
         if (user == null) return null;
 
-        // Tài khoản đang bị khóa — kiểm tra thời gian hết khóa
+        
         if (user.Status == UserStatus.Locked.ToValue())
         {
             if (user.LockedUntil.HasValue && DateTime.UtcNow < user.LockedUntil.Value)
-                return null; // Vẫn còn trong thời gian bị khóa
+                return null; 
 
-            // Hết thời gian khóa → tự động mở khóa
+            
             user.Status = UserStatus.Active.ToValue();
             user.FailedAttempts = 0;
             user.LockedUntil = null;
@@ -36,15 +36,15 @@ public class UserService : IUserService
 
         if (user.Status != UserStatus.Active.ToValue()) return null;
 
-        // BCrypt.Verify — so sánh mật khẩu nhập vào với hash đã lưu
-        // Không bao giờ lưu mật khẩu gốc, chỉ lưu hash
+        
+        
         if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
-            // Sai mật khẩu → tăng số lần thất bại
+            
             user.FailedAttempts++;
             if (user.FailedAttempts >= 5)
             {
-                // Sau 5 lần sai → khóa tài khoản 15 phút
+                
                 user.Status = UserStatus.Locked.ToValue();
                 user.LockedUntil = DateTime.UtcNow.AddMinutes(15);
             }
@@ -53,12 +53,26 @@ public class UserService : IUserService
             return null;
         }
 
-        // Đăng nhập thành công → reset số lần thất bại
         user.FailedAttempts = 0;
         user.LockedUntil = null;
         await _repo.UpdateAsync(user);
         await _repo.SaveChangesAsync();
 
         return user;
+    }
+
+    public async Task<string?> ChangePasswordAsync(string username, string currentPassword, string newPassword)
+    {
+        Users? user = await _repo.GetByUsernameAsync(username);
+        if (user == null) return "Tài khoản không tồn tại";
+
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash))
+            return "Mật khẩu hiện tại không đúng";
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        user.UpdatedAt    = DateTime.UtcNow;
+        await _repo.UpdateAsync(user);
+        await _repo.SaveChangesAsync();
+        return null;
     }
 }

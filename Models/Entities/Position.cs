@@ -4,7 +4,6 @@ using EmployeeManagement.Models.Enums;
 
 namespace EmployeeManagement.Models.Entities;
 
-// Bảng danh mục chức vụ (Developer, Project Manager, v.v.)
 [Table("position")]
 public class Position
 {
@@ -25,7 +24,7 @@ public class Position
     [Column("description")]
     public string? Description { get; set; }
 
-    // Cấp bậc kinh nghiệm: JUNIOR / MIDDLE / SENIOR
+    
     [MaxLength(10)]
     [Column("level")]
     public string Level { get; set; } = PositionLevel.Junior.ToValue();

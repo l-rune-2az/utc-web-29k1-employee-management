@@ -4,6 +4,7 @@ using EmployeeManagement.Models.Enums;
 
 namespace EmployeeManagement.Models.Entities;
 
+// Bảng phụ cấp thực tế của nhân viên — gắn với từng hợp đồng
 [Table("employee_allowance")]
 public class EmployeeAllowance
 {
@@ -19,14 +20,17 @@ public class EmployeeAllowance
     [Column("contract_id")]
     public Guid ContractId { get; set; }
 
+    // Loại phụ cấp được áp dụng
     [Required]
     [Column("allowance_id")]
     public Guid AllowanceId { get; set; }
 
+    // Số tiền thực tế (có thể khác default_amount trong allowance_config)
     [Required]
     [Column("amount", TypeName = "numeric(15,2)")]
     public decimal Amount { get; set; }
 
+    // Ngày bắt đầu áp dụng phụ cấp
     [Column("effective_date")]
     public DateOnly? EffectiveDate { get; set; }
 

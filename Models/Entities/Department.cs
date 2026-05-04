@@ -4,6 +4,7 @@ using EmployeeManagement.Models.Enums;
 
 namespace EmployeeManagement.Models.Entities;
 
+// Bảng lưu thông tin phòng ban, hỗ trợ cấu trúc cây (phòng ban có phòng ban con)
 [Table("department")]
 public class Department
 {
@@ -11,6 +12,7 @@ public class Department
     [Column("id")]
     public Guid Id { get; set; } = Guid.NewGuid();
 
+    // Mã phòng ban duy nhất, ví dụ: IT, HR, KT
     [Required]
     [MaxLength(20)]
     [Column("code")]
@@ -24,9 +26,11 @@ public class Department
     [Column("description")]
     public string? Description { get; set; }
 
+    // Cho phép phòng ban có phòng ban cha (cấu trúc cây) — null = phòng ban gốc
     [Column("parent_id")]
     public Guid? ParentId { get; set; }
 
+    // ACTIVE = đang hoạt động, INACTIVE = đã giải thể (soft delete)
     [MaxLength(10)]
     [Column("status")]
     public string Status { get; set; } = DepartmentStatus.Active.ToValue();
@@ -45,6 +49,7 @@ public class Department
     [Column("updated_by")]
     public string? UpdatedBy { get; set; }
 
+    // Navigation properties — dùng để truy cập dữ liệu liên quan mà không cần viết thêm JOIN
     [ForeignKey("ParentId")]
     public Department? Parent { get; set; }
 

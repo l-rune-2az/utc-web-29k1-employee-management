@@ -79,24 +79,48 @@ Hệ thống phục vụ **2 nhóm người dùng**:
 |-----------|-----------|------------|
 | Framework | ASP.NET Core 10 MVC | Chuẩn môn học, tách biệt rõ Controller / View |
 | Ngôn ngữ | C# | Mạnh về kiểu dữ liệu, phù hợp enterprise |
-| Database | PostgreSQL 15+ | Miễn phí, mạnh, hỗ trợ tốt UUID và kiểu dữ liệu phong phú |
-| ORM | Entity Framework Core 10 (Npgsql) | Viết truy vấn bằng C# thay SQL thủ công |
+| Database | SQL Server 2022 | Tích hợp tốt với .NET, hỗ trợ Docker qua image mssql |
+| ORM | Entity Framework Core 10 | Viết truy vấn bằng C# thay SQL thủ công |
 | Migration | DbUp | Chạy file `.sql` tự động khi khởi động, không cần lệnh ef |
 | Frontend | Bootstrap 5, jQuery | Responsive, sẵn có, phù hợp sinh viên |
 | Xác thực | Cookie Authentication | Tích hợp sẵn trong ASP.NET Core, hỗ trợ `[Authorize]` |
 | Mã hóa mật khẩu | BCrypt.Net-Next | Không lưu plaintext, an toàn với cost factor 12 |
 | Kiến trúc | Repository + Service Pattern | Tách biệt trách nhiệm, dễ bảo trì |
+| Container | Docker + Docker Compose | Chạy app + SQL Server cùng lúc, không cần cài thủ công |
 
 ---
 
 ## Cài đặt và chạy
 
-### Yêu cầu
+### Cách 1 — Docker Compose (khuyến nghị)
 
+Yêu cầu: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+```bash
+git clone <url>
+cd utc-web-29k1-employee-management
+docker compose up --build
+```
+
+Docker sẽ tự khởi động **2 container**:
+- `hrms_sqlserver` — SQL Server 2022, port 1433
+- `hrms_app` — ứng dụng ASP.NET Core, port 5000
+
+Lần đầu build sẽ mất vài phút. Các lần sau chạy lại nhanh hơn.
+
+Truy cập: `http://localhost:5000`
+
+Dừng: `docker compose down`
+
+---
+
+### Cách 2 — Chạy trực tiếp (.NET SDK)
+
+**Yêu cầu:**
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [PostgreSQL 15+](https://www.postgresql.org/download/)
+- SQL Server 2022 (local hoặc Docker riêng)
 
-### Các bước
+**Các bước:**
 
 **1. Clone dự án**
 
@@ -105,7 +129,7 @@ git clone <url>
 cd utc-web-29k1-employee-management
 ```
 
-**2. Tạo database trống trong PostgreSQL**
+**2. Tạo database trống**
 
 ```sql
 CREATE DATABASE hrms;
@@ -113,11 +137,11 @@ CREATE DATABASE hrms;
 
 **3. Cấu hình connection string**
 
-Mở `appsettings.json`, sửa `Username` và `Password` cho khớp máy của bạn:
+Mở `appsettings.json`, sửa thông tin kết nối cho khớp máy:
 
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Host=localhost;Port=5432;Database=hrms;Username=postgres;Password=postgres"
+  "DefaultConnection": "Server=localhost,1433;Database=hrms;User Id=sa;Password=<password>;TrustServerCertificate=True;"
 }
 ```
 
@@ -133,9 +157,7 @@ Lần đầu chạy, **DbUp tự động** thực thi các file SQL trong `db/mi
 
 Không cần chạy `dotnet ef database update` hay bất kỳ lệnh thủ công nào.
 
-**5. Truy cập**
-
-Mở trình duyệt: `http://localhost:5173`
+Truy cập: `http://localhost:5173`
 
 ---
 
@@ -167,17 +189,17 @@ EmployeeManagement/
 │
 ├── Models/
 │   ├── Entities/                   # Class C# ánh xạ 1-1 với bảng trong database
-│   │   ├── Department.cs           # Phòng ban, có navigation property Children, Employees
-│   │   ├── Position.cs             # Chức vụ với cấp độ JUNIOR/MIDDLE/SENIOR
-│   │   ├── Employee.cs             # Nhân viên — bảng trung tâm
+│   │   ├── Department.cs
+│   │   ├── Position.cs
+│   │   ├── Employee.cs
 │   │   ├── Users.cs                # Tài khoản đăng nhập, lưu BCrypt hash
-│   │   ├── Contract.cs             # Hợp đồng với BaseSalary và OfferSalary
-│   │   ├── EmployeeDependent.cs    # Người phụ thuộc
-│   │   ├── AllowanceConfig.cs      # Danh mục loại phụ cấp
-│   │   └── EmployeeAllowance.cs    # Phụ cấp gán theo hợp đồng
-│   └── ViewModels/                 # Class chứa dữ liệu truyền vào View, có Data Annotations
+│   │   ├── Contract.cs             # Có BaseSalary (BHXH) và OfferSalary (thực tế)
+│   │   ├── EmployeeDependent.cs
+│   │   ├── AllowanceConfig.cs
+│   │   └── EmployeeAllowance.cs    # Liên kết 3 chiều: employee + contract + config
+│   └── ViewModels/                 # Class truyền dữ liệu vào View, có Data Annotations
 │       ├── LoginViewModel.cs
-│       ├── DepartmentViewModel.cs  # DepartmentFormViewModel, DepartmentIndexViewModel
+│       ├── DepartmentViewModel.cs
 │       ├── PositionViewModel.cs
 │       ├── EmployeeViewModel.cs
 │       ├── ContractViewModel.cs
@@ -186,14 +208,14 @@ EmployeeManagement/
 │       └── DependentViewModel.cs
 │
 ├── Data/
-│   └── ApplicationDbContext.cs     # DbContext — định nghĩa DbSet, cấu hình quan hệ và constraint
+│   └── ApplicationDbContext.cs     # DbContext — DbSet, cấu hình quan hệ và constraint
 │
-├── Repositories/                   # Lớp truy cập database, gọi DbContext
-│   ├── Interfaces/                 # IRepository cho từng Entity
-│   └── Implementations/            # Class cài đặt thực tế
+├── Repositories/                   # Lớp truy cập database qua DbContext
+│   ├── Interfaces/
+│   └── Implementations/
 │
-├── Services/                       # Lớp nghiệp vụ — validate, sinh mã NV, hash BCrypt...
-│   ├── Interfaces/                 # IService cho từng module
+├── Services/                       # Lớp nghiệp vụ — validate, sinh mã NV, BCrypt...
+│   ├── Interfaces/
 │   └── Implementations/
 │
 ├── Views/                          # Giao diện Razor (.cshtml)
@@ -201,34 +223,37 @@ EmployeeManagement/
 │   │   ├── _Layout.cshtml          # Layout chính: navbar + sidebar động theo role
 │   │   └── _ValidationScriptsPartial.cshtml
 │   ├── Account/
-│   │   ├── Login.cshtml            # Trang đăng nhập (split-screen, gradient)
+│   │   ├── Login.cshtml
 │   │   └── Forbidden.cshtml        # Trang 403
 │   ├── Home/Index.cshtml           # Dashboard: stat cards + bảng nhân viên mới
-│   ├── Department/                 # Index.cshtml, Create.cshtml, Edit.cshtml
+│   ├── Department/
 │   ├── Position/
 │   ├── Employee/
 │   ├── Contract/
 │   ├── AllowanceConfig/
 │   ├── EmployeeAllowance/
 │   ├── Dependent/
-│   └── Profile/Index.cshtml        # Hồ sơ nhân viên với tab Xem / Cập nhật
+│   └── Profile/Index.cshtml        # Hồ sơ nhân viên — tab Xem / Cập nhật
 │
 ├── wwwroot/
 │   ├── css/site.css
 │   ├── js/site.js
 │   └── lib/                        # Bootstrap 5, jQuery, jQuery Validation
 │
-└── db/
-    └── migrations/
-        ├── V1__create_tables.sql   # DDL: 8 bảng + 2 sequence + index + CHECK constraint
-        └── V2__seed_admin_user.sql # Tài khoản admin mặc định (BCrypt hashed)
+├── db/
+│   └── migrations/
+│       ├── V1__create_tables.sql   # DDL: 8 bảng + index + constraint
+│       └── V2__seed_admin_user.sql # Tài khoản admin mặc định (BCrypt hashed)
+│
+├── Dockerfile
+└── docker-compose.yml
 ```
 
 ---
 
 ## Database
 
-Migration chạy tự động qua **DbUp** — không cần lệnh `dotnet ef`.
+Migration chạy tự động qua **DbUp** khi app khởi động — không cần lệnh `dotnet ef`.
 
 ### 8 bảng
 
@@ -236,19 +261,12 @@ Migration chạy tự động qua **DbUp** — không cần lệnh `dotnet ef`.
 |------|-------|----------------|
 | `department` | Phòng ban | Self-referential qua `parent_id` — hỗ trợ cây phân cấp |
 | `position` | Chức vụ | Enum `level`: JUNIOR / MIDDLE / SENIOR |
-| `employee` | Nhân viên | Mã tự sinh `NVYYMMDD###` qua `seq_employee_code` |
+| `employee` | Nhân viên | Mã tự sinh `NVYYMMDD###` |
 | `users` | Tài khoản | Mật khẩu BCrypt, có `failed_attempts` và `locked_until` |
 | `contract` | Hợp đồng | 2 trường lương: `base_salary` (BHXH) và `offer_salary` (thực tế) |
 | `employee_dependent` | Người phụ thuộc | Quan hệ: SPOUSE / CHILD / PARENT |
 | `allowance_config` | Danh mục phụ cấp | Template với `default_amount` gợi ý |
 | `employee_allowance` | Phụ cấp NV | Liên kết 3 chiều: employee + contract + allowance_config |
-
-### Sequence
-
-| Sequence | Dùng cho |
-|----------|---------|
-| `seq_employee_code` | Số thứ tự trong mã nhân viên `NVYYMMDD###` |
-| `seq_contract_number` | Số thứ tự trong số hợp đồng `HĐ-YYYY-NNN` |
 
 ---
 
@@ -267,7 +285,7 @@ Service Layer       ← validate, nghiệp vụ (sinh mã NV, BCrypt, soft delet
 Repository          ← truy vấn database qua DbContext (LINQ / EF Core)
     │
     ▼
-PostgreSQL
+SQL Server
     │  kết quả
     ▼
 Controller → ViewModel → View (.cshtml)
